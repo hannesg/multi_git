@@ -1,0 +1,4 @@
+module MultiGit::Repository
+
+
+end
