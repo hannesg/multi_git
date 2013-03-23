@@ -12,6 +12,7 @@ Gem::Specification.new do |gem|
   # ensure the gem is built out of versioned files
   gem.files = Dir['lib/**/*'] & `git ls-files -z`.split("\0")
 
+  gem.add_development_dependency "rake"
   gem.add_development_dependency "rspec"
   gem.add_development_dependency "simplecov"
 end

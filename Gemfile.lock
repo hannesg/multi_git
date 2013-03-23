@@ -21,6 +21,7 @@ GEM
     maven-tools (0.32.4)
     mime-types (1.21)
     multi_json (1.7.2)
+    rake (10.0.3)
     rest-client (1.6.7)
       mime-types (>= 1.16)
     rspec (2.13.0)
@@ -50,6 +51,7 @@ DEPENDENCIES
   git
   jbundler
   multi_git!
+  rake
   rspec
   rugged (>= 0.17.0.b7)
   simplecov
