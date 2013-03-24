@@ -73,14 +73,20 @@ module MultiGit::JGitBackend
     end
 
     def read(oidish)
-      oid = oidish
-      java_oid = Java::OrgEclipseJgitLib::ObjectId::fromString(oid)
+      java_oid = parse_java(oidish)
       rdr = @git.getObjectDatabase.newReader
       object = rdr.open(java_oid)
       type = REVERSE_OBJECT_TYPE_IDS.fetch(object.getType)
       return OBJECT_CLASSES[type].new(@git, java_oid, object)
     end
 
+    def parse(oidish)
+      return Java::OrgEclipseJgitLib::ObjectId.toString(parse_java(oidish))
+    end
+
+    def parse_java(oidish)
+      return @git.resolve(oidish)
+    end
 
   end
 end

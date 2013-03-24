@@ -36,6 +36,12 @@ shared_examples "an empty repository" do
     object.should be_a(MultiGit::Blob)
     object.read.should == "Blobs"
     object.size.should == 5
+    object.oid.should == inserted.oid
+  end
+
+  it "can parse a sha1-prefix to the full oid" do
+    inserted = repository.put("Blobs", :blob)
+    repository.parse(inserted.oid[0..10]).should == inserted.oid
   end
 
 end

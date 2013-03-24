@@ -52,13 +52,13 @@ module MultiGit::RuggedBackend
     end
 
     def read(oidish)
-      oid = parse_oid(oidish)
+      oid = parse(oidish)
       odb = @git.read(oid)
       return OBJECT_CLASSES[odb.type].new(@git, oid, odb: odb)
     end
 
-    def parse_oid(oidish)
-      return oidish
+    def parse(oidish)
+      return Rugged::Object.rev_parse_oid(@git, oidish)
     end
 
   private
