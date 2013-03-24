@@ -15,5 +15,8 @@ Bundler.require(:default, :development)
 
 require 'shared'
 
+# Smart thing
+# Tests are marked pending directly from code
+old_verbose, $VERBOSE = $VERBOSE, nil
 MultiGit::Error::NotYetImplemented = Class.new(RSpec::Core::Pending::PendingDeclaredInExample)
-
+$VERBOSE = old_verbose

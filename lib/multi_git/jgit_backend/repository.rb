@@ -19,6 +19,8 @@ module MultiGit::JGitBackend
       :tag => 4
     }
 
+    REVERSE_OBJECT_TYPE_IDS = Hash[ OBJECT_TYPE_IDS.map{|k,v| [v,k]} ]
+
     def git_dir
       @git.getDirectory.to_s
     end
@@ -69,6 +71,16 @@ module MultiGit::JGitBackend
         inserter.release if inserter
       end
     end
+
+    def read(oidish)
+      oid = oidish
+      java_oid = Java::OrgEclipseJgitLib::ObjectId::fromString(oid)
+      rdr = @git.getObjectDatabase.newReader
+      object = rdr.open(java_oid)
+      type = REVERSE_OBJECT_TYPE_IDS.fetch(object.getType)
+      return OBJECT_CLASSES[type].new(@git, java_oid, object)
+    end
+
 
   end
 end

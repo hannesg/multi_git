@@ -30,6 +30,14 @@ shared_examples "an empty repository" do
   end
   end
 
+  it "can read a previously added blob" do
+    inserted = repository.put("Blobs", :blob)
+    object = repository.read(inserted.oid)
+    object.should be_a(MultiGit::Blob)
+    object.read.should == "Blobs"
+    object.size.should == 5
+  end
+
 end
 
 shared_examples "a MultiGit backend" do

@@ -51,6 +51,16 @@ module MultiGit::RuggedBackend
       return OBJECT_CLASSES[type].new(@git, oid)
     end
 
+    def read(oidish)
+      oid = parse_oid(oidish)
+      odb = @git.read(oid)
+      return OBJECT_CLASSES[odb.type].new(@git, oid, odb: odb)
+    end
+
+    def parse_oid(oidish)
+      return oidish
+    end
+
   private
 
     def strip_slash(path)

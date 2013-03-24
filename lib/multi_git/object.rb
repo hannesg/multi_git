@@ -3,11 +3,6 @@ module MultiGit
 
     attr :oid
 
-    def initialize( git, oid )
-      @git = git
-      @oid = oid
-    end
-
     def blob?
       false
     end
