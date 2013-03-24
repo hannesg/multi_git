@@ -40,13 +40,28 @@ module MultiGit::GitBackend
 
     def put(content, type = :blob)
       validate_type(type)
+      oid = nil
       if content.respond_to? :path
         oid = @git.lib.send(:command, "hash-object", ['-t',type.to_s,'-w','--', content.path])
       else
         content = content.read if content.respond_to? :read
-        raise MultiGit::Error::NotYetImplemented, "Putting strings/IOs into Git backed repositories"
+        IO.popen("GIT_DIR=#{git_dir} git hash-object -t #{type.to_s} -w --stdin", 'r+') do |io|
+          io.write(content)
+          io.close_write
+          oid = io.read.strip
+        end
       end
       return OBJECT_CLASSES[type].new(@git,oid)
+    end
+
+    def read(oidish)
+      oid = parse(oidish)
+      type = @git.lib.object_type(oid).to_sym
+      return OBJECT_CLASSES[type].new(@git, oid)
+    end
+
+    def parse(oidish)
+      @git.lib.revparse(oidish)
     end
 
   end
