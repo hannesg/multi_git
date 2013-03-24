@@ -1,4 +1,4 @@
-require 'multi_git/shared/repository'
+require 'multi_git/repository'
 require 'multi_git/jgit_backend/blob'
 module MultiGit::JGitBackend
   class Repository
