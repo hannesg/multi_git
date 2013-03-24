@@ -14,3 +14,6 @@ end
 Bundler.require(:default, :development)
 
 require 'shared'
+
+MultiGit::Error::NotYetImplemented = Class.new(RSpec::Core::Pending::PendingDeclaredInExample)
+

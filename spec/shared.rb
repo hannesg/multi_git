@@ -1,5 +1,37 @@
 require 'fileutils'
 require 'tmpdir'
+require 'tempfile'
+shared_examples "an empty repository" do
+
+  it "can add a blob from string" do
+    result = repository.put("Blobs", :blob)
+    result.should be_a(MultiGit::Blob)
+    result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
+  end
+
+  it "can add a blob from an IO ducktype" do
+    io = double("io")
+    io.should_receive(:read).and_return "Blobs"
+    result = repository.put(io, :blob)
+    result.should be_a(MultiGit::Blob)
+    result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
+  end
+
+  it "can add a blob from a file ducktype" do
+  begin
+    tmpfile = Tempfile.new('multi_git')
+    tmpfile.write "Blobs"
+    tmpfile.rewind
+    result = repository.put(tmpfile, :blob)
+    result.should be_a(MultiGit::Blob)
+    result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
+  ensure
+    File.unlink tmpfile.path if tmpfile
+  end
+  end
+
+end
+
 shared_examples "a MultiGit backend" do
 
   let(:tempdir) do
@@ -30,30 +62,71 @@ shared_examples "a MultiGit backend" do
     end
   end
 
-  context "with a empty repository" do
+  context "with an empty repository" do
 
     before(:each) do
       `env -i git init #{tempdir}`
     end
 
-    it "opens" do
+    let(:repository) do
+      subject.open(tempdir)
+    end
+
+    it "opens the repo without options" do
       repo = subject.open(tempdir)
       repo.should be_a(MultiGit::Repository)
+      repo.should_not be_bare
+      repo.git_dir.should == File.join(tempdir, '.git')
+      repo.git_work_tree.should == tempdir
     end
+
+    it "opens the repo with :bare => false option" do
+      repo = subject.open(tempdir, bare: false)
+      repo.should be_a(MultiGit::Repository)
+      repo.should_not be_bare
+    end
+
+    it "opens the repo with :bare => true option" do
+      pending
+      repo = subject.open(tempdir, bare: true)
+      repo.should be_a(MultiGit::Repository)
+      repo.should be_bare
+    end
+
+    it_behaves_like "an empty repository"
 
   end
 
-  context "with a bare repository" do
+  context "with an emtpy bare repository" do
 
     before(:each) do
       `env -i git init --bare #{tempdir}`
     end
 
-    it "opens" do
+    let(:repository) do
+      subject.open(tempdir)
+    end
+
+    it "opens the repo without options" do
       repo = subject.open(tempdir)
+      repo.should be_a(MultiGit::Repository)
+      repo.git_dir.should == tempdir
+      repo.git_work_tree.should be_nil
+      repo.should be_bare
+    end
+
+    it "opens the repo with :bare => true option" do
+      repo = subject.open(tempdir, bare: true)
       repo.should be_a(MultiGit::Repository)
     end
 
-  end
+    it "barfs with :bare => false option" do
+      expect{
+        subject.open(tempdir, bare: false)
+      }.to raise_error(MultiGit::Error::RepositoryBare)
+    end
 
+    it_behaves_like "an empty repository"
+
+  end
 end
