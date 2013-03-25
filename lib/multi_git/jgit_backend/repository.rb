@@ -85,7 +85,17 @@ module MultiGit::JGitBackend
     end
 
     def parse_java(oidish)
-      return @git.resolve(oidish)
+      begin
+        oid = @git.resolve(oidish)
+        if oid.nil?
+          raise MultiGit::Error::InvalidReference, oidish
+        end
+        return oid
+      rescue Java::OrgEclipseJgitErrors::AmbiguousObjectException => e
+        raise MultiGit::Error::AmbiguousReference, e
+      rescue Java::OrgEclipseJgitErrors::RevisionSyntaxException => e
+        raise MultiGit::Error::BadRevisionSyntax, e
+      end
     end
 
   end

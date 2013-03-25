@@ -1,4 +1,5 @@
 require 'multi_git/repository'
+require 'multi_git/git_backend/cmd'
 require 'multi_git/git_backend/blob'
 module MultiGit::GitBackend
   class Repository
@@ -35,6 +36,7 @@ module MultiGit::GitBackend
         end
       end
       @git = Git::Base.new(options)
+      @cmd = Cmd.new( :git_dir => options[:repository] )
       verify_bareness(path, options)
     end
 
@@ -45,7 +47,7 @@ module MultiGit::GitBackend
         oid = @git.lib.send(:command, "hash-object", ['-t',type.to_s,'-w','--', content.path])
       else
         content = content.read if content.respond_to? :read
-        IO.popen("GIT_DIR=#{git_dir} git hash-object -t #{type.to_s} -w --stdin", 'r+') do |io|
+        @cmd.io('hash-object',:t,type.to_s, :w, :stdin) do |io|
           io.write(content)
           io.close_write
           oid = io.read.strip
@@ -61,7 +63,17 @@ module MultiGit::GitBackend
     end
 
     def parse(oidish)
-      @git.lib.revparse(oidish)
+      status,result = @cmd.simple('rev-parse', :revs_only, :validate, oidish.to_s)
+      if result == ""
+        raise MultiGit::Error::InvalidReference, oidish
+      end
+      case(status.exitstatus)
+      when 0 then return result
+      when 128
+        raise MultiGit::Error::InvalidReference, oidish
+      else
+        raise ArgumentError
+      end
     end
 
   end

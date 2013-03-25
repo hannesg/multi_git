@@ -44,6 +44,12 @@ shared_examples "an empty repository" do
     repository.parse(inserted.oid[0..10]).should == inserted.oid
   end
 
+  it "barfs when trying to read an oid", :focus => true do
+    expect{
+      repository.read("123456789abcdef")
+    }.to raise_error(MultiGit::Error::InvalidReference)
+  end
+
 end
 
 shared_examples "a MultiGit backend" do

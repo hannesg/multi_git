@@ -18,6 +18,16 @@ module MultiGit
       include Error
     end
 
+    class InvalidReference < ArgumentError
+      include Error
+    end
+
+    class AmbiguousReference < InvalidReference
+    end
+
+    class BadRevisionSyntax < InvalidReference
+    end
+
     class NotYetImplemented < Exception
       include Error
     end

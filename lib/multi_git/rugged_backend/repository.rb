@@ -58,7 +58,11 @@ module MultiGit::RuggedBackend
     end
 
     def parse(oidish)
-      return Rugged::Object.rev_parse_oid(@git, oidish)
+      begin
+        return Rugged::Object.rev_parse_oid(@git, oidish)
+      rescue Rugged::ReferenceError => e
+        raise MultiGit::Error::InvalidReference, e
+      end
     end
 
   private
