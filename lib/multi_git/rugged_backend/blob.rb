@@ -6,12 +6,11 @@ module MultiGit::RuggedBackend
 
     delegate (IO.public_instance_methods-Object.public_instance_methods) => 'to_io'
 
-    def initialize( git, oid, options = {} )
-      @git = git
+    def initialize( repository, oid, odb = ni = nil )
+      @repository = repository
+      @git = repository.__backend__
       @oid = oid
-      if options[:odb]
-        @odb = options[:odb]
-      end
+      @odb = odb
     end
 
     def size

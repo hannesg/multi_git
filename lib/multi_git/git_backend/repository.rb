@@ -6,6 +6,11 @@ module MultiGit::GitBackend
 
     include MultiGit::Repository
 
+    # @api private
+    def __backend__
+      @git
+    end
+
     OBJECT_CLASSES = {
       :blob => Blob
     }
@@ -53,13 +58,13 @@ module MultiGit::GitBackend
           oid = io.read.strip
         end
       end
-      return OBJECT_CLASSES[type].new(@git,oid)
+      return OBJECT_CLASSES[type].new(self,oid)
     end
 
     def read(oidish)
       oid = parse(oidish)
       type = @git.lib.object_type(oid).to_sym
-      return OBJECT_CLASSES[type].new(@git, oid)
+      return OBJECT_CLASSES[type].new(self, oid)
     end
 
     def parse(oidish)

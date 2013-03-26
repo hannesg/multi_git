@@ -65,7 +65,7 @@ module MultiGit::JGitBackend
           content = content.read if content.respond_to? :read
           oid = inserter.insert(t_id, content.bytes.to_a.to_java(:byte))
         end
-        return OBJECT_CLASSES[type].new(@git, oid)
+        return OBJECT_CLASSES[type].new(self, oid)
       ensure
         reader.close if reader
         inserter.release if inserter
@@ -77,7 +77,7 @@ module MultiGit::JGitBackend
       rdr = @git.getObjectDatabase.newReader
       object = rdr.open(java_oid)
       type = REVERSE_OBJECT_TYPE_IDS.fetch(object.getType)
-      return OBJECT_CLASSES[type].new(@git, java_oid, object)
+      return OBJECT_CLASSES[type].new(self, java_oid, object)
     end
 
     def parse(oidish)
@@ -98,5 +98,9 @@ module MultiGit::JGitBackend
       end
     end
 
+    # @api private
+    def __backend__
+      @git
+    end
   end
 end

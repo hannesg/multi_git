@@ -48,13 +48,13 @@ module MultiGit::RuggedBackend
         content = content.read
       end
       oid = @git.write(content.to_s, type)
-      return OBJECT_CLASSES[type].new(@git, oid)
+      return OBJECT_CLASSES[type].new(self, oid)
     end
 
     def read(oidish)
       oid = parse(oidish)
       odb = @git.read(oid)
-      return OBJECT_CLASSES[odb.type].new(@git, oid, odb: odb)
+      return OBJECT_CLASSES[odb.type].new(self, oid, odb)
     end
 
     def parse(oidish)
@@ -63,6 +63,11 @@ module MultiGit::RuggedBackend
       rescue Rugged::ReferenceError => e
         raise MultiGit::Error::InvalidReference, e
       end
+    end
+
+    # @api private
+    def __backend__
+      @git
     end
 
   private

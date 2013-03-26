@@ -9,9 +9,10 @@ module MultiGit::JGitBackend
 
     import "org.eclipse.jgit.lib.ObjectId"
 
-    def initialize(git,oid, object = nil)
+    def initialize(repository,oid, object = nil)
+      @repository = repository
       @java_oid = oid
-      @git = git
+      @git = repository.__backend__
       @oid = ObjectId.toString(oid)
       @java_object = object
     end

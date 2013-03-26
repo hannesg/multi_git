@@ -7,8 +7,9 @@ module MultiGit::GitBackend
 
     delegate (IO.public_instance_methods-Object.public_instance_methods) => 'to_io'
 
-    def initialize(git, oid, content = nil)
-      @git = git
+    def initialize(repository, oid, content = nil)
+      @repository = repository
+      @git = repository.__backend__
       @oid = oid
       @content = content ? content.dup.freeze : nil
     end
