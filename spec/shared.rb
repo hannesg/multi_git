@@ -1,6 +1,33 @@
 require 'fileutils'
 require 'tmpdir'
 require 'tempfile'
+
+shared_examples "a MultiGit blob instance" do
+
+  it "is recognized as a Git::Blob" do
+    make_blob("Use all the git!").should be_a(MultiGit::Blob)
+  end
+
+  it "is recognized as an IO" do
+    make_blob("Use all the git!").should be_a(IO)
+  end
+  it "is readeable" do
+    make_blob("Use all the git!").read.should be_a(String)
+  end
+
+  it "is rewindeable", focus: true do
+    blob = make_blob("Use all the git!")
+    blob.read.should == "Use all the git!"
+    blob.read.should == ""
+    blob.rewind
+    blob.read.should == "Use all the git!"
+  end
+
+  it "has the correct size" do
+    blob = make_blob("Use all the git!")
+    blob.size.should == 16
+  end
+end
 shared_examples "an empty repository" do
 
   it "can add a blob from string" do
@@ -149,4 +176,20 @@ shared_examples "a MultiGit backend" do
     it_behaves_like "an empty repository"
 
   end
+
+  context "blob implementation" do
+
+    let(:repository) do
+      subject.open(tempdir, init: true)
+    end
+
+    def make_blob(content)
+      obj = repository.put(content)
+      repository.read(obj.oid)
+    end
+
+    it_behaves_like "a MultiGit blob instance"
+
+  end
+
 end

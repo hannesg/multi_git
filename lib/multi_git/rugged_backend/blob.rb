@@ -18,15 +18,14 @@ module MultiGit::RuggedBackend
       odb.len
     end
 
-    def read
-      @content ||= odb.data.freeze
-    end
-
     def to_io
-      @io ||= StringIO.new(read)
+      @io ||= StringIO.new(content)
     end
 
   private
+    def content
+      @content ||= odb.data.freeze
+    end
 
     def odb
       @odb ||= @git.read(@oid)

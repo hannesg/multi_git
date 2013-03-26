@@ -23,12 +23,14 @@ module MultiGit::GitBackend
       end
     end
 
-    def read
+    def content
       @content ||= @git.lib.object_contents(@oid).freeze
     end
 
+    private :content
+
     def to_io
-      @io ||= StringIO.new(read)
+      @io ||= StringIO.new(content)
     end
 
   end
