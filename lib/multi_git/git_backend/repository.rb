@@ -1,6 +1,7 @@
 require 'multi_git/repository'
 require 'multi_git/git_backend/cmd'
 require 'multi_git/git_backend/blob'
+require 'multi_git/git_backend/tree'
 module MultiGit::GitBackend
   class Repository
 
@@ -12,7 +13,8 @@ module MultiGit::GitBackend
     end
 
     OBJECT_CLASSES = {
-      :blob => Blob
+      :blob => Blob,
+      :tree => Tree
     }
 
     def bare?

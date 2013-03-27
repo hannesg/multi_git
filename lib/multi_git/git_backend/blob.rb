@@ -1,18 +1,13 @@
 require 'multi_git/blob'
+require 'multi_git/git_backend/object'
 module MultiGit::GitBackend
 
   class Blob < IO
 
     include MultiGit::Blob
+    include MultiGit::GitBackend::Object
 
-    delegate (IO.public_instance_methods-Object.public_instance_methods) => 'to_io'
-
-    def initialize(repository, oid, content = nil)
-      @repository = repository
-      @git = repository.__backend__
-      @oid = oid
-      @content = content ? content.dup.freeze : nil
-    end
+    delegate (IO.public_instance_methods-::Object.public_instance_methods) => 'to_io'
 
     def size
       @size ||= begin

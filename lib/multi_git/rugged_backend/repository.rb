@@ -1,11 +1,18 @@
+require 'multi_git/tree_entry'
 require 'multi_git/repository'
 require 'multi_git/rugged_backend/blob'
+require 'multi_git/rugged_backend/tree'
 module MultiGit::RuggedBackend
   class Repository
     include MultiGit::Repository
 
     OBJECT_CLASSES = {
-      :blob => Blob
+      :blob => Blob,
+      :tree => Tree
+    }
+
+    ENTRY_CLASSES = {
+#      :blob => MultiGit::TreeEntry.for(Blob)
     }
 
     delegate "bare?" => "@git"
@@ -53,8 +60,15 @@ module MultiGit::RuggedBackend
 
     def read(oidish)
       oid = parse(oidish)
-      odb = @git.read(oid)
-      return OBJECT_CLASSES[odb.type].new(self, oid, odb)
+      object = @git.lookup(oid)
+      return OBJECT_CLASSES[object.type].new(self, oid, object)
+    end
+
+    # @api private
+    def read_entry(name, mode, oidish)
+      oid = parse(oidish)
+      object = @git.lookup(oid)
+      return ENTRY_CLASSES[object.type].new(name, mode, self, oid, object)
     end
 
     def parse(oidish)

@@ -28,6 +28,7 @@ shared_examples "a MultiGit blob instance" do
     blob.size.should == 16
   end
 end
+
 shared_examples "an empty repository" do
 
   it "can add a blob from string" do
@@ -189,6 +190,35 @@ shared_examples "a MultiGit backend" do
     end
 
     it_behaves_like "a MultiGit blob instance"
+
+  end
+
+  context "with a repository containing a tiny tree" do
+
+    before(:each) do
+      pid = spawn( {},  <<SHELL )
+mkdir -p #{tempdir}
+cd #{tempdir}
+env -i git init --bare . > /dev/null
+OID=$(echo "foo" | env -i git hash-object -w -t blob --stdin )
+TOID=$(echo "100644 blob $OID\tbar" | env -i git mktree)
+echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/null
+SHELL
+      Process.wait(pid)
+    end
+
+    let(:tree_oid) do
+      "95b3dc37df875dfdced5157fa4330d55e6597304"
+    end
+
+    let(:repository) do
+      subject.open(tempdir)
+    end
+
+    it "reads the tree" do
+      tree = repository.read(tree_oid)
+      tree.should be_a(MultiGit::Tree)
+    end
 
   end
 

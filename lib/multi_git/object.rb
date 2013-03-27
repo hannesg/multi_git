@@ -1,7 +1,7 @@
 module MultiGit
   module Object
 
-    attr :oid
+    attr :repository, :oid
 
     def blob?
       false

@@ -1,21 +1,13 @@
 require 'stringio'
 require 'multi_git/blob'
+require 'multi_git/rugged_backend/object'
 module MultiGit::RuggedBackend
   class Blob < IO
     include MultiGit::Blob
+    include MultiGit::RuggedBackend::Object
 
-    delegate (IO.public_instance_methods-Object.public_instance_methods) => 'to_io'
-
-    def initialize( repository, oid, odb = ni = nil )
-      @repository = repository
-      @git = repository.__backend__
-      @oid = oid
-      @odb = odb
-    end
-
-    def size
-      odb.len
-    end
+    delegate (IO.public_instance_methods-::Object.public_instance_methods) => 'to_io'
+    delegate :size => :rugged_object
 
     def to_io
       @io ||= StringIO.new(content)
@@ -23,11 +15,7 @@ module MultiGit::RuggedBackend
 
   private
     def content
-      @content ||= odb.data.freeze
-    end
-
-    def odb
-      @odb ||= @git.read(@oid)
+      @content ||= rugged_object.content.freeze
     end
 
   end

@@ -1,21 +1,13 @@
 require 'multi_git/blob'
+require 'multi_git/jgit_backend/object'
 module MultiGit::JGitBackend
 
   class Blob < IO
 
     include MultiGit::Blob
+    include MultiGit::JGitBackend::Object
 
-    delegate (IO.public_instance_methods-Object.public_instance_methods) => 'to_io'
-
-    import "org.eclipse.jgit.lib.ObjectId"
-
-    def initialize(repository,oid, object = nil)
-      @repository = repository
-      @java_oid = oid
-      @git = repository.__backend__
-      @oid = ObjectId.toString(oid)
-      @java_object = object
-    end
+    delegate (IO.public_instance_methods-::Object.public_instance_methods) => 'to_io'
 
     def size
       java_object.getSize
@@ -38,10 +30,5 @@ module MultiGit::JGitBackend
                          stream
                        end
     end
-
-    def java_object
-      @java_object ||= @git.getObjectDatabase.newReader.open(@java_oid)
-    end
-
   end
 end
