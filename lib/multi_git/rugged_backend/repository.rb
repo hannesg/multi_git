@@ -12,7 +12,8 @@ module MultiGit::RuggedBackend
     }
 
     ENTRY_CLASSES = {
-#      :blob => MultiGit::TreeEntry.for(Blob)
+      :blob => MultiGit::TreeEntry.for(Blob),
+      :tree => MultiGit::TreeEntry.for(Tree)
     }
 
     delegate "bare?" => "@git"

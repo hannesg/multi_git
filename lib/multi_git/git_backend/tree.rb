@@ -8,14 +8,8 @@ module MultiGit::GitBackend
     include MultiGit::Tree
     include MultiGit::GitBackend::Object
 
-    def each_entry(&block)
-      git_entries.each(&block)
-    end
-
-  private
-
-    def git_entries
-      @git_entries ||= begin
+    def raw_entries
+      @raw_entries ||= begin
         @git.io('ls-tree', oid) do |io|
           io.each_line.map do |line|
             raise unless LS_TREE_REGEX =~ line

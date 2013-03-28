@@ -15,22 +15,44 @@ module MultiGit
     end
 
     def [](key)
-      
+      if key.kind_of? Numeric
+        return make_entry(*raw_entries[key])
+      elsif key.kind_of? String
+        return self / key
+      else
+        raise ArgumentError
+      end
+    end
+
+    def /(key)
+      local, rest = key.split('/',2)
+      e = raw_entries.find{|name, _, _ , _| name == local }
+      raise ArgumentError unless e
+      entry = make_entry(*e)
+      if rest
+        return entry / rest
+      else
+        return entry
+      end
     end
 
     def each
       return to_enum unless block_given?
-      each_entry do |name, mode, oid, type|
+      raw_each do |name, mode, oid, type|
         yield make_entry(name, mode, oid, type)
       end
     end
 
-    def each_entry
-      raise Error::NotYetImplemented, "#{self.class}::each_entry"
+    def raw_each(&block)
+      raw_entries.each(&block)
+    end
+
+    def raw_entries
+      raise Error::NotYetImplemented, "#{self.class}#each_entry"
     end
 
     def size
-      raise Error::NotYetImplemented, "#{self.class}::size"
+      @size ||= raw_entries.size
     end
 
   protected

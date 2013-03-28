@@ -192,7 +192,7 @@ shared_examples "a MultiGit backend" do
 
   end
 
-  context "with a repository containing a tiny tree" do
+  context "with a repository containing a tiny tree", :tree => true do
 
     before(:each) do
       `mkdir -p #{tempdir}
@@ -216,14 +216,63 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
       tree.should be_a(MultiGit::Tree)
     end
 
-    it "iterates over the tree" do
+    it "knows the size" do
+      tree = repository.read(tree_oid)
+      tree.size.should == 2
+    end
+
+    it "iterates over the raw tree entries" do
       tree = repository.read(tree_oid)
       expect{|yld|
-        tree.each_entry(&yld)
+        tree.raw_each(&yld)
       }.to yield_successive_args(
         ["bar", 33188, "257cc5642cb1a054f08cc83f2d943e56fd3ebe99", :blob],
         ["foo", 16384, "efbc17e61e746dad5c834bcb94869ba66b6264f9", :tree])
     end
+
+    it "has a list of raw tree entries" do
+      tree = repository.read(tree_oid)
+      tree.raw_entries.should == [
+        ["bar", 33188, "257cc5642cb1a054f08cc83f2d943e56fd3ebe99", :blob],
+        ["foo", 16384, "efbc17e61e746dad5c834bcb94869ba66b6264f9", :tree]
+      ]
+    end
+
+    it "iterates over the tree" do
+      tree = repository.read(tree_oid)
+      expect{|yld|
+        tree.each(&yld)
+      }.to yield_successive_args(
+        MultiGit::Blob,
+        MultiGit::Tree)
+    end
+
+    it "allows accessing entries by name" do
+      tree = repository.read(tree_oid)
+      tree['foo'].should be_a(MultiGit::Tree)
+    end
+
+    it "allows accessing nested entries" do
+      tree = repository.read(tree_oid)
+      tree['foo/bar'].should be_a(MultiGit::Blob)
+    end
+
+    it "allows accessing entries with a slash" do
+      tree = repository.read(tree_oid)
+      (tree / 'foo').should be_a(MultiGit::Tree)
+    end
+
+    it "allows accessing nested entries with a slash" do
+      tree = repository.read(tree_oid)
+      (tree / 'foo/bar').should be_a(MultiGit::Blob)
+    end
+
+    it "allows accessing entries by offset" do
+      tree = repository.read(tree_oid)
+      tree[0].should be_a(MultiGit::Blob)
+    end
+
+
   end
 
 end

@@ -1,4 +1,5 @@
 require 'multi_git/utils'
+require 'multi_git/tree_entry'
 require 'multi_git/repository'
 require 'multi_git/git_backend/cmd'
 require 'multi_git/git_backend/blob'
@@ -16,6 +17,11 @@ module MultiGit::GitBackend
     OBJECT_CLASSES = {
       :blob => Blob,
       :tree => Tree
+    }
+
+    ENTRY_CLASSES = {
+      :blob => MultiGit::TreeEntry.for(Blob),
+      :tree => MultiGit::TreeEntry.for(Tree)
     }
 
     def bare?
@@ -66,6 +72,12 @@ module MultiGit::GitBackend
       oid = parse(oidish)
       type = @git['cat-file',:t, oid]
       return OBJECT_CLASSES[type.to_sym].new(self, oid)
+    end
+
+    def read_entry(name, mode, oidish)
+      oid = parse(oidish)
+      type = @git['cat-file',:t, oid]
+      return ENTRY_CLASSES[type.to_sym].new(name, mode, self, oid)
     end
 
     def parse(oidish)

@@ -1,4 +1,5 @@
 require 'multi_git/repository'
+require 'multi_git/tree_entry'
 require 'multi_git/jgit_backend/blob'
 require 'multi_git/jgit_backend/tree'
 module MultiGit::JGitBackend
@@ -10,6 +11,11 @@ module MultiGit::JGitBackend
     OBJECT_CLASSES = {
       :blob => Blob,
       :tree => Tree
+    }
+
+    ENTRY_CLASSES = {
+      :blob => MultiGit::TreeEntry.for(Blob),
+      :tree => MultiGit::TreeEntry.for(Tree)
     }
 
     # These IDs are magic numbers
@@ -81,10 +87,19 @@ module MultiGit::JGitBackend
       return OBJECT_CLASSES[type].new(self, java_oid, object)
     end
 
+    # @api private
+    def read_entry(name, mode, oidish)
+      java_oid = parse_java(oidish)
+      object = use_reader{|rdr| rdr.open(java_oid) }
+      type = REVERSE_OBJECT_TYPE_IDS.fetch(object.getType)
+      return ENTRY_CLASSES[type].new(name, mode, self, java_oid, object)
+    end
+
     def parse(oidish)
       return Java::OrgEclipseJgitLib::ObjectId.toString(parse_java(oidish))
     end
 
+    # @api private
     def parse_java(oidish)
       begin
         oid = @git.resolve(oidish)
@@ -99,6 +114,7 @@ module MultiGit::JGitBackend
       end
     end
 
+    # @api private
     def use_reader
       begin
         rdr = @git.getObjectDatabase.newReader

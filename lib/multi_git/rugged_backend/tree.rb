@@ -9,10 +9,9 @@ module MultiGit::RuggedBackend
       rugged_object.count
     end
 
-    def each_entry
-      return to_enum(:each_entry) unless block_given?
-      rugged_object.each do |entry|
-        yield entry[:name], entry[:filemode], entry[:oid], entry[:type]
+    def raw_entries
+      @raw_entries ||= rugged_object.map do |entry|
+        [entry[:name], entry[:filemode], entry[:oid], entry[:type]]
       end
     end
 
