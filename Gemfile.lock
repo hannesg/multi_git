@@ -14,7 +14,6 @@ GEM
       simplecov (>= 0.7)
       thor
     diff-lcs (1.2.1)
-    git (1.2.5)
     jbundler (0.4.1)
       maven-tools (~> 0.32.1)
       ruby-maven (~> 3.0.4)
@@ -48,7 +47,6 @@ PLATFORMS
 
 DEPENDENCIES
   coveralls
-  git
   jbundler
   multi_git!
   rake

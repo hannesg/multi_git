@@ -18,32 +18,29 @@ module MultiGit::GitBackend
     }
 
     def bare?
-      @git.dir.nil? || !File.exists?(@git.dir.to_s)
+      git_work_tree.nil?
     end
 
-    def git_dir
-      @git.repo.path
-    end
-
-    def git_work_tree
-      bare? ? nil : @git.dir.to_s
-    end
+    attr :git_dir
+    attr :git_work_tree
 
     def initialize(path, options = {})
       options = initialize_options(path, options)
+      @git = Cmd.new( :git_dir => options[:repository] )
       if !File.exists?(options[:repository])
         if options[:init]
           if options[:bare]
-            Git::Lib.new(options).send(:command, 'init', ['--bare', options[:repository]])
+            @git.simple('init', :bare, options[:repository])
           else
-            Git::Lib.new(options).init
+            @git.simple('init', options[:repository])
           end
         else
           raise MultiGit::Error::NotARepository, options[:repository]
         end
       end
-      @git = Git::Base.new(options)
-      @cmd = Cmd.new( :git_dir => options[:repository] )
+      @git_dir = options[:repository]
+      @git_work_tree = options[:working_directory]
+      @index = options[:index]
       verify_bareness(path, options)
     end
 
@@ -51,10 +48,10 @@ module MultiGit::GitBackend
       validate_type(type)
       oid = nil
       if content.respond_to? :path
-        oid = @git.lib.send(:command, "hash-object", ['-t',type.to_s,'-w','--', content.path])
+        _,oid = @git.simple("hash-object",:t, type.to_s,:w,'--', content.path)
       else
         content = content.read if content.respond_to? :read
-        @cmd.io('hash-object',:t,type.to_s, :w, :stdin) do |io|
+        @git.io('hash-object',:t,type.to_s, :w, :stdin) do |io|
           io.write(content)
           io.close_write
           oid = io.read.strip
@@ -65,12 +62,12 @@ module MultiGit::GitBackend
 
     def read(oidish)
       oid = parse(oidish)
-      type = @git.lib.object_type(oid).to_sym
-      return OBJECT_CLASSES[type].new(self, oid)
+      _, type = @git.simple('cat-file',:t, oid)
+      return OBJECT_CLASSES[type.to_sym].new(self, oid)
     end
 
     def parse(oidish)
-      status,result = @cmd.simple('rev-parse', :revs_only, :validate, oidish.to_s)
+      status,result = @git.simple('rev-parse', :revs_only, :validate, oidish.to_s)
       if result == ""
         raise MultiGit::Error::InvalidReference, oidish
       end

@@ -12,7 +12,6 @@ unless jruby_without_cext
   rugged_opts  << {:platform => 'ruby'}
 end
 
-gem 'git'
 gem 'rugged', '>= 0.17.0.b7', *rugged_opts
 gem 'jbundler', :platform => 'jruby'
 gem 'coveralls'

@@ -100,9 +100,8 @@ module MultiGit
 
     extend Backend
 
-    check "Git Gem available" do
-      defined?(::Git) ||
-        file_loadeable?('git')
+    check "Git Executeable available" do
+      `git --version`
     end
 
     def self.load!

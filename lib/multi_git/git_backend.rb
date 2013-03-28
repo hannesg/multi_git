@@ -1,4 +1,3 @@
-require 'git'
 module MultiGit
   module GitBackend
     class << self

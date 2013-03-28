@@ -14,13 +14,13 @@ module MultiGit::GitBackend
         if @content
           @content.bytesize
         else
-          @git.lib.object_size(@oid)
+          @git.simple('cat-file',:s,@oid)[1].to_i
         end
       end
     end
 
     def content
-      @content ||= @git.lib.object_contents(@oid).freeze
+      @content ||= @git.simple('cat-file','blob',@oid)[1].freeze
     end
 
     private :content
