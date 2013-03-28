@@ -196,15 +196,12 @@ shared_examples "a MultiGit backend" do
   context "with a repository containing a tiny tree" do
 
     before(:each) do
-      pid = spawn( {},  <<SHELL )
-mkdir -p #{tempdir}
+      `mkdir -p #{tempdir}
 cd #{tempdir}
 env -i git init --bare . > /dev/null
 OID=$(echo "foo" | env -i git hash-object -w -t blob --stdin )
 TOID=$(echo "100644 blob $OID\tbar" | env -i git mktree)
-echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/null
-SHELL
-      Process.wait(pid)
+echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/null`
     end
 
     let(:tree_oid) do
