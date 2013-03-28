@@ -12,7 +12,7 @@ module MultiGit::RuggedBackend
     def each_entry
       return to_enum(:each_entry) unless block_given?
       rugged_object.each do |entry|
-        yield entry[:name], entry[:mode], entry[:oid], entry[:type]
+        yield entry[:name], entry[:filemode], entry[:oid], entry[:type]
       end
     end
 

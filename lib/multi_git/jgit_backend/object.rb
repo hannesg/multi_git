@@ -12,8 +12,10 @@ module MultiGit::JGitBackend::Object
 
 protected
 
+  attr :java_oid
+
   def java_object
-    @java_object ||= @git.getObjectDatabase.newReader.open(@java_oid)
+    @java_object ||= repository.use_reader{|rdr| rdr.open(@java_oid) }
   end
 
 end

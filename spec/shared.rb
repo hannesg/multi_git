@@ -217,6 +217,14 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
       tree.should be_a(MultiGit::Tree)
     end
 
+    it "iterates over the tree" do
+      tree = repository.read(tree_oid)
+      expect{|yld|
+        tree.each_entry(&yld)
+      }.to yield_successive_args(
+        ["bar", 33188, "257cc5642cb1a054f08cc83f2d943e56fd3ebe99", :blob],
+        ["foo", 16384, "efbc17e61e746dad5c834bcb94869ba66b6264f9", :tree])
+    end
   end
 
 end

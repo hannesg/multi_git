@@ -76,8 +76,7 @@ module MultiGit::JGitBackend
 
     def read(oidish)
       java_oid = parse_java(oidish)
-      rdr = @git.getObjectDatabase.newReader
-      object = rdr.open(java_oid)
+      object = use_reader{|rdr| rdr.open(java_oid) }
       type = REVERSE_OBJECT_TYPE_IDS.fetch(object.getType)
       return OBJECT_CLASSES[type].new(self, java_oid, object)
     end
@@ -99,6 +98,15 @@ module MultiGit::JGitBackend
         raise MultiGit::Error::BadRevisionSyntax, e
       end
     end
+
+    def use_reader
+      begin
+        rdr = @git.getObjectDatabase.newReader
+        result = yield rdr
+      ensure
+        rdr.release if rdr
+      end
+    end 
 
     # @api private
     def __backend__
