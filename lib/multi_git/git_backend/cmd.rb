@@ -1,17 +1,37 @@
 require 'shellwords'
+require 'multi_git/error'
 module MultiGit::GitBackend
 
   class Cmd
+
+    class Error
+      
+      def self.const_missing(name)
+        if name =~ /\AExitCode\d+\z/
+          self.const_set(name, Class.new(self))
+        else
+          super
+        end
+      end
+
+      def self.[](exit_code)
+        return const_get("ExitCode#{exit_code}")
+      end
+
+    end
 
     def initialize(options = {})
       @cmd = 'env -i git'
       @opts = options
     end
 
-    def simple(*args)
+    def [](*args)
       s = cmd_string(*args)
       c = `#{s}`.chomp
-      return $?, c
+      unless $?.exitstatus == 0
+        raise Error[$?.status], s
+      end
+      return c
     end
 
     def run(*args)
@@ -21,8 +41,11 @@ module MultiGit::GitBackend
       options = args.last.kind_of?(Hash) ? args.pop.dup : {}
       args << options
       s = cmd_string(*args)
-      IO.popen(s, 'r+', &block)
-      return $?
+      result = IO.popen(s, 'r+', &block)
+      unless $?.exitstatus == 0
+        raise Error[$?.status], s
+      end
+      return result
     end
 
   private

@@ -1,3 +1,4 @@
+require 'multi_git/utils'
 require 'multi_git/repository'
 require 'multi_git/git_backend/cmd'
 require 'multi_git/git_backend/blob'
@@ -26,19 +27,20 @@ module MultiGit::GitBackend
 
     def initialize(path, options = {})
       options = initialize_options(path, options)
-      @git = Cmd.new( :git_dir => options[:repository] )
-      if !File.exists?(options[:repository])
+      git_dir = options[:repository]
+      @git = Cmd.new( :git_dir => git_dir )
+      if !File.exists?(git_dir) || MultiGit::Utils.empty_dir?(git_dir)
         if options[:init]
           if options[:bare]
-            @git.simple('init', :bare, options[:repository])
+            @git['init', :bare, git_dir]
           else
-            @git.simple('init', options[:repository])
+            @git['init', git_dir]
           end
         else
           raise MultiGit::Error::NotARepository, options[:repository]
         end
       end
-      @git_dir = options[:repository]
+      @git_dir = git_dir
       @git_work_tree = options[:working_directory]
       @index = options[:index]
       verify_bareness(path, options)
@@ -48,7 +50,7 @@ module MultiGit::GitBackend
       validate_type(type)
       oid = nil
       if content.respond_to? :path
-        _,oid = @git.simple("hash-object",:t, type.to_s,:w,'--', content.path)
+        oid = @git["hash-object",:t, type.to_s,:w,'--', content.path]
       else
         content = content.read if content.respond_to? :read
         @git.io('hash-object',:t,type.to_s, :w, :stdin) do |io|
@@ -62,21 +64,19 @@ module MultiGit::GitBackend
 
     def read(oidish)
       oid = parse(oidish)
-      _, type = @git.simple('cat-file',:t, oid)
+      type = @git['cat-file',:t, oid]
       return OBJECT_CLASSES[type.to_sym].new(self, oid)
     end
 
     def parse(oidish)
-      status,result = @git.simple('rev-parse', :revs_only, :validate, oidish.to_s)
-      if result == ""
+      begin
+        result = @git['rev-parse', :revs_only, :validate, oidish.to_s]
+        if result == ""
+          raise MultiGit::Error::InvalidReference, oidish
+        end
+        return result
+      rescue Cmd::Error::ExitCode128
         raise MultiGit::Error::InvalidReference, oidish
-      end
-      case(status.exitstatus)
-      when 0 then return result
-      when 128
-        raise MultiGit::Error::InvalidReference, oidish
-      else
-        raise ArgumentError
       end
     end
 

@@ -11,6 +11,13 @@ module MultiGit
       MODE_EXECUTEABLE => :blob
     }
 
+    # @api private
+    DOTS = { '.' => true, '..' => true }
+
+    def empty_dir?(path)
+      Dir.new(path).reject{|path| DOTS[path] }.none?
+    end
+
     # A
     def looks_bare?(path)
       return nil unless File.exists?(path)

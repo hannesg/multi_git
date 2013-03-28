@@ -104,7 +104,6 @@ shared_examples "a MultiGit backend" do
     end
 
     it "inits a bare repository with :init and :bare" do
-      pending if subject == MultiGit::GitBackend
       subject.open(tempdir, :init => true, :bare => true).should be_a(MultiGit::Repository)
       File.exists?(File.join(tempdir,'refs')).should be_true
     end
