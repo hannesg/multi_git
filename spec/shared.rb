@@ -207,6 +207,10 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
       "95b3dc37df875dfdced5157fa4330d55e6597304"
     end
 
+    let(:tree) do
+      tree = repository.read(tree_oid)
+    end
+
     let(:repository) do
       subject.open(tempdir)
     end
@@ -247,32 +251,76 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
         MultiGit::Tree)
     end
 
-    it "allows accessing entries by name" do
-      tree = repository.read(tree_oid)
-      tree['foo'].should be_a(MultiGit::Tree)
+    describe "#[]" do
+
+      it "allows accessing entries by name" do
+        tree['foo'].should be_a(MultiGit::Tree)
+      end
+
+      it "allows accessing nested entries" do
+        tree['foo/bar'].should be_a(MultiGit::Blob)
+      end
+
+      it "raises an error for out-of-bound offset" do
+        expect{ tree[2] }.to raise_error(ArgumentError, /Index 2 out of bound/)
+      end
+
+      it "raises an error for float offset" do
+        expect{ tree[0.5] }.to raise_error(ArgumentError, /Expected an Integer or a String/)
+      end
+
     end
 
-    it "allows accessing nested entries" do
-      tree = repository.read(tree_oid)
-      tree['foo/bar'].should be_a(MultiGit::Blob)
+    describe "#key?" do
+
+      it "confirms correctly for integers" do
+        tree.key?(0).should be_true
+      end
+
+      it "confirms correctly for negative integers" do
+        tree.key?(-2).should be_true
+      end
+
+      it "declines correctly for integers" do
+        tree.key?(2).should be_false
+      end
+
+      it "declines correctly for negative integers" do
+        tree.key?(-3).should be_false
+      end
+
+      it "confirms correctly for names" do
+        tree.key?('foo').should be_true
+      end
+
+      it "declines correctly for names" do
+        tree.key?('blub').should be_false
+      end
+
+      it "raises an error for floats" do
+        expect{ tree.key? 0.5 }.to raise_error(ArgumentError, /Expected an Integer or a String/)
+      end
     end
 
-    it "allows accessing entries with a slash" do
-      tree = repository.read(tree_oid)
-      (tree / 'foo').should be_a(MultiGit::Tree)
-    end
+    describe '#/' do
 
-    it "allows accessing nested entries with a slash" do
-      tree = repository.read(tree_oid)
-      (tree / 'foo/bar').should be_a(MultiGit::Blob)
-    end
+      it "allows accessing entries with a slash" do
+        (tree / 'foo').should be_a(MultiGit::Tree)
+      end
 
-    it "allows accessing entries by offset" do
-      tree = repository.read(tree_oid)
-      tree[0].should be_a(MultiGit::Blob)
-    end
+      it "allows accessing nested entries with a slash" do
+        (tree / 'foo/bar').should be_a(MultiGit::Blob)
+      end
 
+      it "allows accessing entries by offset" do
+        tree[0].should be_a(MultiGit::Blob)
+      end
+
+      it "raises an error for missing entry offset" do
+        expect{ tree / "blub" }.to raise_error(ArgumentError, /doesn't contain an entry named "blub"/)
+      end
+
+    end
 
   end
-
 end
