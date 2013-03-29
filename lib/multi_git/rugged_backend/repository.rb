@@ -3,6 +3,12 @@ require 'multi_git/repository'
 require 'multi_git/rugged_backend/blob'
 require 'multi_git/rugged_backend/tree'
 module MultiGit::RuggedBackend
+
+  Executeable = Class.new(Blob){ include MultiGit::Executeable }
+  File = Class.new(Blob){ include MultiGit::File }
+  Symlink = Class.new(Blob){ include MultiGit::Symlink }
+  Directory = Class.new(Tree){ include MultiGit::Directory }
+
   class Repository
     include MultiGit::Repository
 
@@ -12,8 +18,10 @@ module MultiGit::RuggedBackend
     }
 
     ENTRY_CLASSES = {
-      :blob => MultiGit::TreeEntry.for(Blob),
-      :tree => MultiGit::TreeEntry.for(Tree)
+      Utils::MODE_EXECUTEABLE => Executeable,
+      Utils::MODE_FILE        => File,
+      Utils::MODE_SYMLINK     => Symlink,
+      Utils::MODE_DIRECTORY   => Directory
     }
 
     delegate "bare?" => "@git"
@@ -69,7 +77,7 @@ module MultiGit::RuggedBackend
     def read_entry(name, mode, oidish)
       oid = parse(oidish)
       object = @git.lookup(oid)
-      return ENTRY_CLASSES[object.type].new(name, mode, self, oid, object)
+      return ENTRY_CLASSES[mode].new(name, mode, self, oid, object)
     end
 
     def parse(oidish)

@@ -1,6 +1,15 @@
 require 'fileutils'
 require 'set'
+require 'multi_git/utils'
+require 'multi_git/tree_entry'
+require 'multi_git/symlink'
+require 'multi_git/directory'
+require 'multi_git/file'
+require 'multi_git/executeable'
+require 'multi_git/submodule'
 module MultiGit::Repository
+
+  Utils = MultiGit::Utils
 
   VALID_TYPES = Set[:blob, :tree, :commit, :tag]
 
@@ -32,7 +41,7 @@ protected
     when false then
       raise MultiGit::Error::RepositoryBare, path if looks_bare
     end
-    if !File.exists?(path)
+    if !::File.exists?(path)
       if options[:init]
         FileUtils.mkdir_p(path)
       else
@@ -43,14 +52,14 @@ protected
       if looks_bare || options[:init]
         options[:repository] ||= path
       else
-        options[:repository] ||= File.join(path, '.git')
+        options[:repository] ||= ::File.join(path, '.git')
       end
       options.delete(:working_directory)
     else
       options[:working_directory] = path
-      options[:repository] ||= File.join(path, '.git')
+      options[:repository] ||= ::File.join(path, '.git')
     end
-    options[:index] ||= File.join(options[:repository],'index')
+    options[:index] ||= ::File.join(options[:repository],'index')
     return options
   end
 

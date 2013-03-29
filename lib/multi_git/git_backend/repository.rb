@@ -5,6 +5,12 @@ require 'multi_git/git_backend/cmd'
 require 'multi_git/git_backend/blob'
 require 'multi_git/git_backend/tree'
 module MultiGit::GitBackend
+
+  Executeable = Class.new(Blob){ include MultiGit::Executeable }
+  File = Class.new(Blob){ include MultiGit::File }
+  Symlink = Class.new(Blob){ include MultiGit::Symlink }
+  Directory = Class.new(Tree){ include MultiGit::Directory }
+
   class Repository
 
     include MultiGit::Repository
@@ -14,14 +20,18 @@ module MultiGit::GitBackend
       @git
     end
 
+    Utils = MultiGit::Utils
+
     OBJECT_CLASSES = {
       :blob => Blob,
       :tree => Tree
     }
 
     ENTRY_CLASSES = {
-      :blob => MultiGit::TreeEntry.for(Blob),
-      :tree => MultiGit::TreeEntry.for(Tree)
+      Utils::MODE_EXECUTEABLE => Executeable,
+      Utils::MODE_FILE        => File,
+      Utils::MODE_SYMLINK     => Symlink,
+      Utils::MODE_DIRECTORY   => Directory
     }
 
     def bare?
@@ -35,7 +45,7 @@ module MultiGit::GitBackend
       options = initialize_options(path, options)
       git_dir = options[:repository]
       @git = Cmd.new( :git_dir => git_dir )
-      if !File.exists?(git_dir) || MultiGit::Utils.empty_dir?(git_dir)
+      if !::File.exists?(git_dir) || MultiGit::Utils.empty_dir?(git_dir)
         if options[:init]
           if options[:bare]
             @git['init', :bare, git_dir]
@@ -76,8 +86,8 @@ module MultiGit::GitBackend
 
     def read_entry(name, mode, oidish)
       oid = parse(oidish)
-      type = @git['cat-file',:t, oid]
-      return ENTRY_CLASSES[type.to_sym].new(name, mode, self, oid)
+      #type = @git['cat-file',:t, oid]
+      return ENTRY_CLASSES[mode].new(name, mode, self, oid)
     end
 
     def parse(oidish)

@@ -3,6 +3,12 @@ require 'multi_git/tree_entry'
 require 'multi_git/jgit_backend/blob'
 require 'multi_git/jgit_backend/tree'
 module MultiGit::JGitBackend
+
+  Executeable = Class.new(Blob){ include MultiGit::Executeable }
+  File = Class.new(Blob){ include MultiGit::File }
+  Symlink = Class.new(Blob){ include MultiGit::Symlink }
+  Directory = Class.new(Tree){ include MultiGit::Directory }
+
   class Repository
     include MultiGit::Repository
 
@@ -14,8 +20,10 @@ module MultiGit::JGitBackend
     }
 
     ENTRY_CLASSES = {
-      :blob => MultiGit::TreeEntry.for(Blob),
-      :tree => MultiGit::TreeEntry.for(Tree)
+      Utils::MODE_EXECUTEABLE => Executeable,
+      Utils::MODE_FILE        => File,
+      Utils::MODE_SYMLINK     => Symlink,
+      Utils::MODE_DIRECTORY   => Directory
     }
 
     # These IDs are magic numbers
@@ -68,7 +76,7 @@ module MultiGit::JGitBackend
         if content.respond_to? :path
           path = content.path
           reader = Java::JavaIO::FileInputStream.new(path)
-          oid = inserter.insert(t_id.to_java(:int), File.size(content.path).to_java(:long), reader)
+          oid = inserter.insert(t_id.to_java(:int), ::File.size(content.path).to_java(:long), reader)
         else
           content = content.read if content.respond_to? :read
           oid = inserter.insert(t_id, content.bytes.to_a.to_java(:byte))
@@ -91,8 +99,8 @@ module MultiGit::JGitBackend
     def read_entry(name, mode, oidish)
       java_oid = parse_java(oidish)
       object = use_reader{|rdr| rdr.open(java_oid) }
-      type = REVERSE_OBJECT_TYPE_IDS.fetch(object.getType)
-      return ENTRY_CLASSES[type].new(name, mode, self, java_oid, object)
+      #type = REVERSE_OBJECT_TYPE_IDS.fetch(object.getType)
+      return ENTRY_CLASSES[mode].new(name, mode, self, java_oid, object)
     end
 
     def parse(oidish)

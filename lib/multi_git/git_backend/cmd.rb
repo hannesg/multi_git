@@ -29,7 +29,7 @@ module MultiGit::GitBackend
       s = cmd_string(*args)
       c = `#{s}`.chomp
       unless $?.exitstatus == 0
-        raise Error[$?.status], s
+        raise Error[$?.exitstatus], s
       end
       return c
     end
@@ -43,7 +43,7 @@ module MultiGit::GitBackend
       s = cmd_string(*args)
       result = IO.popen(s, 'r+', &block)
       unless $?.exitstatus == 0
-        raise Error[$?.status], s
+        raise Error[$?.exitstatus], s
       end
       return result
     end

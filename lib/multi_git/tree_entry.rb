@@ -1,14 +1,10 @@
+require 'multi_git/utils'
+require 'multi_git/object'
 module MultiGit
 
   module TreeEntry
 
-    def self.for(klass)
-      if klass.const_defined?(:Entry)
-        klass.const_get(:Entry)
-      else
-        klass.const_set(:Entry, Class.new(klass){ include TreeEntry })
-      end
-    end
+    include MultiGit::Object
 
     attr :name
     attr :mode

@@ -247,18 +247,18 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
       expect{|yld|
         tree.each(&yld)
       }.to yield_successive_args(
-        MultiGit::Blob,
-        MultiGit::Tree)
+        MultiGit::File,
+        MultiGit::Directory)
     end
 
     describe "#[]" do
 
       it "allows accessing entries by name" do
-        tree['foo'].should be_a(MultiGit::Tree)
+        tree['foo'].should be_a(MultiGit::Directory)
       end
 
       it "allows accessing nested entries" do
-        tree['foo/bar'].should be_a(MultiGit::Blob)
+        tree['foo/bar'].should be_a(MultiGit::File)
       end
 
       it "raises an error for out-of-bound offset" do
@@ -305,15 +305,15 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
     describe '#/' do
 
       it "allows accessing entries with a slash" do
-        (tree / 'foo').should be_a(MultiGit::Tree)
+        (tree / 'foo').should be_a(MultiGit::Directory)
       end
 
       it "allows accessing nested entries with a slash" do
-        (tree / 'foo/bar').should be_a(MultiGit::Blob)
+        (tree / 'foo/bar').should be_a(MultiGit::File)
       end
 
       it "allows accessing entries by offset" do
-        tree[0].should be_a(MultiGit::Blob)
+        tree[0].should be_a(MultiGit::File)
       end
 
       it "raises an error for missing entry offset" do
