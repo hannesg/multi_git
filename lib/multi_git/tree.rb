@@ -52,8 +52,8 @@ module MultiGit
 
     def each
       return to_enum unless block_given?
-      raw_each do |name, mode, oid, type|
-        yield make_entry(name, mode, oid, type)
+      raw_each do |name, mode, oid|
+        yield make_entry(name, mode, oid)
       end
     end
 
@@ -71,12 +71,12 @@ module MultiGit
 
   protected
 
-    def make_entry(name, mode, oid, type)
+    def make_entry(name, mode, oid)
       repository.read_entry(name,mode,oid)
     end
 
     def raw_entries_by_name
-      @raw_entries_by_name ||= Hash[ raw_entries.map{|name, mode, oid, type| [name,[name, mode, oid, type]] }]
+      @raw_entries_by_name ||= Hash[ raw_entries.map{|name, mode, oid| [name,[name, mode, oid]] }]
     end
 
   end

@@ -18,8 +18,7 @@ module MultiGit::JGitBackend
         it = CanonicalTreeParser.new(EMPTY_BYTES, reader, java_oid)
         until it.eof
           mode = it.getEntryRawMode
-          type = MultiGit::Utils.type_from_mode mode
-          entries << [it.getEntryPathString, mode, ObjectId.toString(it.getEntryObjectId), type]
+          entries << [it.getEntryPathString, mode, ObjectId.toString(it.getEntryObjectId)]
           it.next
         end
         @raw_entries = entries

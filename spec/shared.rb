@@ -230,15 +230,15 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
       expect{|yld|
         tree.raw_each(&yld)
       }.to yield_successive_args(
-        ["bar", 33188, "257cc5642cb1a054f08cc83f2d943e56fd3ebe99", :blob],
-        ["foo", 16384, "efbc17e61e746dad5c834bcb94869ba66b6264f9", :tree])
+        ["bar", 33188, "257cc5642cb1a054f08cc83f2d943e56fd3ebe99"],
+        ["foo", 16384, "efbc17e61e746dad5c834bcb94869ba66b6264f9"])
     end
 
     it "has a list of raw tree entries" do
       tree = repository.read(tree_oid)
       tree.raw_entries.should == [
-        ["bar", 33188, "257cc5642cb1a054f08cc83f2d943e56fd3ebe99", :blob],
-        ["foo", 16384, "efbc17e61e746dad5c834bcb94869ba66b6264f9", :tree]
+        ["bar", 33188, "257cc5642cb1a054f08cc83f2d943e56fd3ebe99"],
+        ["foo", 16384, "efbc17e61e746dad5c834bcb94869ba66b6264f9"]
       ]
     end
 

@@ -11,7 +11,7 @@ module MultiGit::RuggedBackend
 
     def raw_entries
       @raw_entries ||= rugged_object.map do |entry|
-        [entry[:name], entry[:filemode], entry[:oid], entry[:type]]
+        [entry[:name], entry[:filemode], entry[:oid]]
       end
     end
 
