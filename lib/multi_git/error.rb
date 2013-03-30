@@ -28,7 +28,11 @@ module MultiGit
     class BadRevisionSyntax < InvalidReference
     end
 
-    class NotYetImplemented < Exception
+    class NotYetImplemented < NotImplementedError
+      include Error
+    end
+
+    class Internal < Exception
       include Error
     end
 

@@ -10,8 +10,8 @@ module MultiGit::GitBackend
 
     def raw_entries
       @raw_entries ||= begin
-        @git.io('ls-tree', oid) do |io|
-          io.each_line.map do |line|
+        @git.call('ls-tree', oid) do |stdout|
+          stdout.each_line.map do |line|
             raise unless LS_TREE_REGEX =~ line
             [$3,$1.to_i(8),$2]
           end

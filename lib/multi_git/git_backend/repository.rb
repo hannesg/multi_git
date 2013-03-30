@@ -40,11 +40,13 @@ module MultiGit::GitBackend
 
     attr :git_dir
     attr :git_work_tree
+    attr :git_binary
 
     def initialize(path, options = {})
+      @git_binary = `which git`.chomp
       options = initialize_options(path, options)
       git_dir = options[:repository]
-      @git = Cmd.new( :git_dir => git_dir )
+      @git = Cmd.new(git_binary, :git_dir => git_dir )
       if !::File.exists?(git_dir) || MultiGit::Utils.empty_dir?(git_dir)
         if options[:init]
           if options[:bare]
@@ -69,10 +71,10 @@ module MultiGit::GitBackend
         oid = @git["hash-object",:t, type.to_s,:w,'--', content.path]
       else
         content = content.read if content.respond_to? :read
-        @git.io('hash-object',:t,type.to_s, :w, :stdin) do |io|
-          io.write(content)
-          io.close_write
-          oid = io.read.strip
+        @git.call('hash-object',:t,type.to_s, :w, :stdin) do |stdin, stdout|
+          stdin.write(content)
+          stdin.close
+          oid = stdout.read.chomp
         end
       end
       return OBJECT_CLASSES[type].new(self,oid)

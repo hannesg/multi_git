@@ -1,11 +1,12 @@
 require 'shellwords'
+require 'open3'
 require 'multi_git/error'
 module MultiGit::GitBackend
 
   class Cmd
 
-    class Error
-      
+    class Error < MultiGit::Error::Internal
+
       def self.const_missing(name)
         if name =~ /\AExitCode\d+\z/
           self.const_set(name, Class.new(self))
@@ -17,41 +18,61 @@ module MultiGit::GitBackend
       def self.[](exit_code)
         return const_get("ExitCode#{exit_code}")
       end
-
     end
 
-    def initialize(options = {})
-      @cmd = 'env -i git'
+    def initialize(command, options = {})
+      @cmd = command
       @opts = options
     end
 
-    def [](*args)
-      s = cmd_string(*args)
-      c = `#{s}`.chomp
-      unless $?.exitstatus == 0
-        raise Error[$?.exitstatus], s
+    READ_BLOCK = lambda{|io|
+      io.read.chomp
+    }
+
+    def call(*args, &block)
+      s = cmd(*args)
+      block ||= READ_BLOCK
+      result = nil
+      message = nil
+      status = popen_foo( s.join(' ') ) do | stdin, stdout, stderr |
+        if block.arity == 1
+          stdin.close
+          result = block.call(stdout)
+        else
+          result = block.call(stdin, stdout)
+        end
+        message = stderr.read
       end
-      return c
+      if status.exitstatus == 0
+        return result
+      else
+        raise Error[status.exitstatus], message.chomp
+      end
     end
 
-    def run(*args)
-    end
-
-    def io(*args, &block)
-      options = args.last.kind_of?(Hash) ? args.pop.dup : {}
-      args << options
-      s = cmd_string(*args)
-      result = IO.popen(s, 'r+', &block)
-      unless $?.exitstatus == 0
-        raise Error[$?.exitstatus], s
-      end
-      return result
-    end
+    alias [] call
 
   private
 
-    def cmd_string(*args)
-      [ @cmd, escape_opts(@opts), escape_args(args) , '2>&1'].flatten.join(' ')
+    # @api private
+    # 
+    # popen3 is broken in jruby, popen4 is not available in mri :(
+    def popen_foo(*args)
+      if IO.respond_to? :popen4
+        IO.popen4(*args) do |_pid, *yield_args|
+          yield *yield_args
+        end
+        return $?
+      else
+        Open3.popen3(*args) do |*yield_args,_thr|
+          yield *yield_args
+          return _thr.value
+        end
+      end
+    end
+
+    def cmd(*args)
+      [ @cmd, escape_opts(@opts), escape_args(args) ].flatten
     end
 
     def escape_args(args)
@@ -68,7 +89,7 @@ module MultiGit::GitBackend
 
     def escape_opts(opts)
       opts.map{|k,v|
-        Shellwords.escape(opt_to_string(k)+'='+v)
+        opt_to_string(k)+'='+Shellwords.escape(v)
       }
     end
 
