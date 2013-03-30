@@ -1,7 +1,7 @@
 require 'fileutils'
 require 'tmpdir'
 require 'tempfile'
-
+require 'timeout'
 shared_examples "a MultiGit blob instance" do
 
   it "is recognized as a Git::Blob" do
@@ -371,33 +371,45 @@ echo "120000 blob $OID\tbar\n100644 blob $OID\tfoo" | env -i git mktree`
 
   end
 
-  context "with a repository containing a simple symlink", :tree => true, :symlink => true do
+  context "with a repository containing a self-referential symlink", :tree => true, :symlink => true do
 
     before(:each) do
       `mkdir -p #{tempdir}
 cd #{tempdir}
 env -i git init --bare . > /dev/null
 OID=$(echo -n "foo" | env -i git hash-object -w -t blob --stdin )
-echo "120000 blob $OID\tbar\n100644 blob $OID\tfoo" | env -i git mktree`
+echo "120000 blob $OID\tfoo" | env -i git mktree`
     end
 
-    let(:tree_oid){ "b1210985da34bd8a8d55502b3891fbe5c9f2d7b7" }
+    let(:tree_oid){ "12f0253e71b89b95a92128be2844ff6a0c9e6a55" }
 
     let(:repository){ subject.open(tempdir) }
 
     let(:tree){ repository.read(tree_oid) }
 
-    it "reads the symlink" do
-      tree['bar', follow: false].should be_a(MultiGit::Symlink)
+    it "raises an error if we try to traverse it" do
+      # This could loop forever, so ...
+      Timeout.timeout(0.2) do
+        expect{
+          tree['foo']
+        }.to raise_error(MultiGit::Error::CyclicSymlink)
+      end
     end
 
-    it "resolves the symlink" do
-      target = tree['bar', follow: false].resolve 
-      target.should be_a(MultiGit::File)
+    it "allows traverse it without follow" do
+      # This could loop forever, so ...
+      Timeout.timeout(0.2) do
+        tree['foo', follow: false].should be_a(MultiGit::Symlink)
+      end
     end
 
-    it "automatically resolves the symlink" do
-      tree['bar'].should be_a(MultiGit::File)
+    it "raises an error if we try to resolve it" do
+      # This could loop forever, so ...
+      Timeout.timeout(0.2) do
+        expect{
+          tree['foo', follow: false].resolve
+        }.to raise_error(MultiGit::Error::CyclicSymlink)
+      end
     end
 
   end

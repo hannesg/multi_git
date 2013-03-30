@@ -53,6 +53,7 @@ module MultiGit
       parts = path.split('/').reverse!
       current = self
       follow = options.fetch(:follow){true}
+      oids = Set.new
       while parts.any?
         part = parts.pop
         raise MultiGit::Error::InvalidTraversal, "Can't traverse to #{path} from #{self.inspect}: #{current.inspect} doesn't contain an entry named #{part.inspect}" unless current.tree?
@@ -68,6 +69,13 @@ module MultiGit
           raise MultiGit::Error::InvalidTraversal, "Can't traverse to #{path} from #{self.inspect}: #{current.inspect} doesn't contain an entry named #{part.inspect}" unless entry
           # may be a symlink
           if entry.symlink?
+            if oids.include? entry.oid
+              # We have already seen this symlink
+              #TODO: it's okay to see a symlink twice if requested
+              raise MultiGit::Error::CyclicSymlink, "Cyclic symlink detected while traversing #{path} from #{self.inspect}."
+            else
+              oids << entry.oid
+            end
             if follow
               parts.push(*entry.target.split(SLASH))
             else

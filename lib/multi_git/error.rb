@@ -26,6 +26,10 @@ module MultiGit
       include Error
     end
 
+    class CyclicSymlink < Exception
+      include Error
+    end
+
     class AmbiguousReference < InvalidReference
     end
 
