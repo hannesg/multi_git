@@ -74,10 +74,11 @@ module MultiGit::RuggedBackend
     end
 
     # @api private
-    def read_entry(name, mode, oidish)
+    def read_entry(parent = nil, name, mode, oidish)
       oid = parse(oidish)
       object = @git.lookup(oid)
-      return ENTRY_CLASSES[mode].new(name, mode, self, oid, object)
+      verify_type_for_mode(object.type, mode)
+      return ENTRY_CLASSES[mode].new(parent, name, mode, self, oid, object)
     end
 
     def parse(oidish)

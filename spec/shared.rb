@@ -317,9 +317,87 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
       end
 
       it "raises an error for missing entry offset" do
-        expect{ tree / "blub" }.to raise_error(ArgumentError, /doesn't contain an entry named "blub"/)
+        expect{ tree / "blub" }.to raise_error(MultiGit::Error::InvalidTraversal, /doesn't contain an entry named "blub"/)
       end
 
+      it "traverses to the parent tree" do
+        (tree / 'foo' / '..').should == tree
+      end
+
+      it "raises an error if the parent tree is unknown" do
+        expect{
+          tree / '..'
+        }.to raise_error(MultiGit::Error::InvalidTraversal, /Can't traverse to parent of/)
+      end
+
+    end
+
+  end
+
+  context "with a repository containing a simple symlink", :tree => true, :symlink => true do
+
+    before(:each) do
+      `mkdir -p #{tempdir}
+cd #{tempdir}
+env -i git init --bare . > /dev/null
+OID=$(echo -n "foo" | env -i git hash-object -w -t blob --stdin )
+echo "120000 blob $OID\tbar\n100644 blob $OID\tfoo" | env -i git mktree`
+    end
+
+    let(:tree_oid){ "b1210985da34bd8a8d55502b3891fbe5c9f2d7b7" }
+
+    let(:repository){ subject.open(tempdir) }
+
+    let(:tree){ repository.read(tree_oid) }
+
+    it "reads the symlink" do
+      tree['bar', follow: false].should be_a(MultiGit::Symlink)
+    end
+
+    it "resolves the symlink" do
+      target = tree['bar', follow: false].resolve 
+      target.should be_a(MultiGit::File)
+    end
+
+    it "automatically resolves the symlink" do
+      tree['bar'].should be_a(MultiGit::File)
+    end
+
+    it "gives a useful error when trying to traverse into the file" do
+      expect{
+        tree['bar/foo']
+      }.to raise_error(MultiGit::Error::InvalidTraversal)
+    end
+
+  end
+
+  context "with a repository containing a simple symlink", :tree => true, :symlink => true do
+
+    before(:each) do
+      `mkdir -p #{tempdir}
+cd #{tempdir}
+env -i git init --bare . > /dev/null
+OID=$(echo -n "foo" | env -i git hash-object -w -t blob --stdin )
+echo "120000 blob $OID\tbar\n100644 blob $OID\tfoo" | env -i git mktree`
+    end
+
+    let(:tree_oid){ "b1210985da34bd8a8d55502b3891fbe5c9f2d7b7" }
+
+    let(:repository){ subject.open(tempdir) }
+
+    let(:tree){ repository.read(tree_oid) }
+
+    it "reads the symlink" do
+      tree['bar', follow: false].should be_a(MultiGit::Symlink)
+    end
+
+    it "resolves the symlink" do
+      target = tree['bar', follow: false].resolve 
+      target.should be_a(MultiGit::File)
+    end
+
+    it "automatically resolves the symlink" do
+      tree['bar'].should be_a(MultiGit::File)
     end
 
   end

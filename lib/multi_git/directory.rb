@@ -3,6 +3,11 @@ module MultiGit
 
   module Directory
     include TreeEntry
+
+    def parent?
+      !@parent.nil?
+    end
+
   end
 
 end

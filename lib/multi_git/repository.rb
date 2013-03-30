@@ -1,6 +1,7 @@
 require 'fileutils'
 require 'set'
 require 'multi_git/utils'
+require 'multi_git/error'
 require 'multi_git/tree_entry'
 require 'multi_git/symlink'
 require 'multi_git/directory'
@@ -10,6 +11,7 @@ require 'multi_git/submodule'
 module MultiGit::Repository
 
   Utils = MultiGit::Utils
+  Error = MultiGit::Error
 
   VALID_TYPES = Set[:blob, :tree, :commit, :tag]
 
@@ -34,18 +36,18 @@ protected
   def initialize_options(path, options)
     options = options.dup
     options[:expected_bare] = options[:bare]
-    looks_bare = MultiGit::Utils.looks_bare?(path)
+    looks_bare = Utils.looks_bare?(path)
     case(options[:bare])
     when nil then
       options[:bare] = looks_bare
     when false then
-      raise MultiGit::Error::RepositoryBare, path if looks_bare
+      raise Error::RepositoryBare, path if looks_bare
     end
     if !::File.exists?(path)
       if options[:init]
         FileUtils.mkdir_p(path)
       else
-        raise MultiGit::Error::NotARepository, path
+        raise Error::NotARepository, path
       end
     end
     if options[:bare]
@@ -67,12 +69,19 @@ protected
     bareness = options[:expected_bare]
     return if bareness.nil?
     if !bareness && bare?
-      raise MultiGit::Error::RepositoryBare, path
+      raise Error::RepositoryBare, path
+    end
+  end
+
+  def verify_type_for_mode(type, mode)
+    expected = Utils.type_from_mode(mode)
+    unless type == expected
+      raise Error::WrongTypeForMode.new(expected, type)
     end
   end
 
   def validate_type(type)
-    raise MultiGit::Error::InvalidObjectType, type.inspect unless VALID_TYPES.include?(type)
+    raise Error::InvalidObjectType, type.inspect unless VALID_TYPES.include?(type)
   end
 
 end

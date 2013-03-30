@@ -96,11 +96,12 @@ module MultiGit::JGitBackend
     end
 
     # @api private
-    def read_entry(name, mode, oidish)
+    def read_entry(parent = nil, name, mode, oidish)
       java_oid = parse_java(oidish)
       object = use_reader{|rdr| rdr.open(java_oid) }
-      #type = REVERSE_OBJECT_TYPE_IDS.fetch(object.getType)
-      return ENTRY_CLASSES[mode].new(name, mode, self, java_oid, object)
+      type = REVERSE_OBJECT_TYPE_IDS.fetch(object.getType)
+      verify_type_for_mode(type, mode)
+      return ENTRY_CLASSES[mode].new(parent, name, mode, self, java_oid, object)
     end
 
     def parse(oidish)

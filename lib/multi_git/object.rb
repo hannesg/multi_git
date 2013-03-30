@@ -19,5 +19,9 @@ module MultiGit
       false
     end
 
+    def symlink?
+      false
+    end
+
   end
 end

@@ -22,10 +22,22 @@ module MultiGit
       include Error
     end
 
+    class InvalidTraversal < ArgumentError
+      include Error
+    end
+
     class AmbiguousReference < InvalidReference
     end
 
     class BadRevisionSyntax < InvalidReference
+    end
+
+    class WrongTypeForMode < Exception
+      include Error
+
+      def initialize(expected, actual)
+        super("It looks like you expected a #{expected.inspect} but referenced entry is a #{actual.inspect}")
+      end
     end
 
     class NotYetImplemented < NotImplementedError

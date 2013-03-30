@@ -86,10 +86,11 @@ module MultiGit::GitBackend
       return OBJECT_CLASSES[type.to_sym].new(self, oid)
     end
 
-    def read_entry(name, mode, oidish)
+    def read_entry(parent = nil, name, mode, oidish)
       oid = parse(oidish)
-      #type = @git['cat-file',:t, oid]
-      return ENTRY_CLASSES[mode].new(name, mode, self, oid)
+      type = @git['cat-file',:t, oid]
+      verify_type_for_mode(type.to_sym, mode)
+      return ENTRY_CLASSES[mode].new(parent, name, mode, self, oid)
     end
 
     def parse(oidish)

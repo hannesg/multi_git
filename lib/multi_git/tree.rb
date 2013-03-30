@@ -3,6 +3,8 @@ require 'forwardable'
 module MultiGit
   module Tree
 
+    SLASH = '/'.freeze
+
     include MultiGit::Object
     include Enumerable
 
@@ -12,6 +14,10 @@ module MultiGit
 
     def type
       :tree
+    end
+
+    def parent?
+      false
     end
 
     def key?(key)
@@ -25,30 +31,61 @@ module MultiGit
       end
     end
 
-    def [](key)
+    def [](key, options = {})
       if key.kind_of? Integer
         e = raw_entries[key]
         raise ArgumentError, "Index #{key.to_s} out of bounds. The tree #{self.inspect} has only #{size} elements." unless e
         return make_entry(*e)
       elsif key.kind_of? String
-        return self / key
+        return traverse(key, options)
       else
         raise ArgumentError, "Expected an Integer or a String, got a #{key.inspect}"
       end
     end
 
-    def /(key)
-      local, rest = key.split('/',2)
-      e = raw_entries_by_name.fetch(local) do
-        raise ArgumentError, "#{self.inspect} doesn't contain an entry named #{local.inspect}"
-      end
-      entry = make_entry(*e)
-      if rest
-        return entry / rest
-      else
-        return entry
-      end
+    def entry(key)
+      e = raw_entries_by_name[key]
+      return nil unless e
+      return make_entry(*e)
     end
+
+    def traverse(path, options = {})
+      parts = path.split('/').reverse!
+      current = self
+      follow = options.fetch(:follow){true}
+      while parts.any?
+        part = parts.pop
+        raise MultiGit::Error::InvalidTraversal, "Can't traverse to #{path} from #{self.inspect}: #{current.inspect} doesn't contain an entry named #{part.inspect}" unless current.tree?
+        if part == '..'
+          unless current.parent?
+            raise MultiGit::Error::InvalidTraversal, "Can't traverse to parent of #{current.inspect} since I don't know where it is."
+          end
+          current = current.parent
+        elsif part == '.' || part == ''
+          # do nothing
+        else
+          entry = current.entry(part)
+          raise MultiGit::Error::InvalidTraversal, "Can't traverse to #{path} from #{self.inspect}: #{current.inspect} doesn't contain an entry named #{part.inspect}" unless entry
+          # may be a symlink
+          if entry.symlink?
+            if follow
+              parts.push(*entry.target.split(SLASH))
+            else
+              if parts.none?
+                return entry
+              else
+                raise ArgumentError, "Can't follow symlink #{entry.inspect} since you didn't allow me to"
+              end
+            end
+          else
+            current = entry
+          end
+        end
+      end
+      return current
+    end
+
+    alias / traverse
 
     def each
       return to_enum unless block_given?
@@ -69,10 +106,14 @@ module MultiGit
       @size ||= raw_entries.size
     end
 
+    def inspect
+      ['#<',self.class.name,' ',oid,' repository:', repository.inspect,'>'].join
+    end
+
   protected
 
     def make_entry(name, mode, oid)
-      repository.read_entry(name,mode,oid)
+      repository.read_entry(self, name,mode,oid)
     end
 
     def raw_entries_by_name
