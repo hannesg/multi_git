@@ -77,20 +77,20 @@ module MultiGit::JGitBackend
         end
         content = content.to_io
       end
-      begin
-        inserter = @git.getObjectDatabase.newInserter
-        if content.respond_to? :path
-          path = content.path
-          reader = Java::JavaIO::FileInputStream.new(path)
-          oid = inserter.insert(t_id.to_java(:int), ::File.size(content.path).to_java(:long), reader)
-        else
-          content = content.read if content.respond_to? :read
-          oid = inserter.insert(t_id, content.bytes.to_a.to_java(:byte))
+      use_inserter do |inserter|
+        begin
+          if content.respond_to? :path
+            path = content.path
+            reader = Java::JavaIO::FileInputStream.new(path)
+            oid = inserter.insert(t_id.to_java(:int), ::File.size(content.path).to_java(:long), reader)
+          else
+            content = content.read if content.respond_to? :read
+            oid = inserter.insert(t_id, content.bytes.to_a.to_java(:byte))
+          end
+          return OBJECT_CLASSES[type].new(self, oid)
+        ensure
+          reader.close if reader
         end
-        return OBJECT_CLASSES[type].new(self, oid)
-      ensure
-        reader.close if reader
-        inserter.release if inserter
       end
     end
 
@@ -141,11 +141,22 @@ module MultiGit::JGitBackend
       ensure
         rdr.release if rdr
       end
-    end 
+    end
+
+    # @api private
+    def use_inserter
+      begin
+        rdr = @git.getObjectDatabase.newInserter
+        result = yield rdr
+      ensure
+        rdr.release if rdr
+      end
+    end
 
     # @api private
     def __backend__
       @git
     end
+
   end
 end
