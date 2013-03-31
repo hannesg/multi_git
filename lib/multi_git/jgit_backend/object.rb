@@ -18,7 +18,7 @@ class MultiGit::JGitBackend::Object < IO
 
   delegate (IO.public_instance_methods-::Object.public_instance_methods) => 'to_io'
 
-  def size
+  def bytesize
     java_object.getSize
   end
 
@@ -35,7 +35,7 @@ private
   def java_stream
     @java_stream ||= begin
                        stream = java_object.openStream
-                       stream.mark(size)
+                       stream.mark(bytesize)
                        stream
                      end
   end

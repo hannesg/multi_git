@@ -15,7 +15,7 @@ class MultiGit::GitBackend::Object < IO
 
   delegate (IO.public_instance_methods-::Object.public_instance_methods) => 'to_io'
 
-  def size
+  def bytesize
     @size ||= begin
       if @content
         @content.bytesize

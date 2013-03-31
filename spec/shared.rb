@@ -25,7 +25,7 @@ shared_examples "a MultiGit blob instance" do
 
   it "has the correct size" do
     blob = make_blob("Use all the git!")
-    blob.size.should == 16
+    blob.bytesize.should == 16
   end
 end
 
@@ -91,7 +91,7 @@ shared_examples "an empty repository" do
     object = repository.read(inserted.oid)
     object.should be_a(MultiGit::Blob)
     object.read.should == "Blobs"
-    object.size.should == 5
+    object.bytesize.should == 5
     object.oid.should == inserted.oid
   end
 
@@ -285,6 +285,10 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
 
     it "allows treating the tree as io" do
       tree.to_io.read.bytes.to_a.should == [49, 48, 48, 54, 52, 52, 32, 98, 97, 114, 0, 37, 124, 197, 100, 44, 177, 160, 84, 240, 140, 200, 63, 45, 148, 62, 86, 253, 62, 190, 153, 52, 48, 48, 48, 48, 32, 102, 111, 111, 0, 239, 188, 23, 230, 30, 116, 109, 173, 92, 131, 75, 203, 148, 134, 155, 166, 107, 98, 100, 249]
+    end
+
+    it "allows treating the tree as io" do
+      tree.bytesize.should == 61
     end
 
     describe "#[]" do

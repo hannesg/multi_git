@@ -17,7 +17,7 @@ class MultiGit::RuggedBackend::Object < IO
     @io ||= StringIO.new(content)
   end
 
-  def size
+  def bytesize
     rugged_odb.len
   end
 
