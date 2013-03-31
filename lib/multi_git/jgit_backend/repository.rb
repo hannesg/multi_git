@@ -71,6 +71,12 @@ module MultiGit::JGitBackend
       t_id = OBJECT_TYPE_IDS[type]
       inserter = nil
       reader = nil
+      if content.kind_of? MultiGit::Object
+        if include?(content.oid)
+          return read(content.oid)
+        end
+        content = content.to_io
+      end
       begin
         inserter = @git.getObjectDatabase.newInserter
         if content.respond_to? :path
@@ -102,6 +108,10 @@ module MultiGit::JGitBackend
       type = REVERSE_OBJECT_TYPE_IDS.fetch(object.getType)
       verify_type_for_mode(type, mode)
       return ENTRY_CLASSES[mode].new(parent, name, mode, self, java_oid, object)
+    end
+
+    def include?(oid)
+      @git.hasObject(Java::OrgEclipseJgitLib::ObjectId.fromString(oid))
     end
 
     def parse(oidish)

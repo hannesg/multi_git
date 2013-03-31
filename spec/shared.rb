@@ -37,6 +37,13 @@ shared_examples "an empty repository" do
     result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
   end
 
+  it "behaves nice if an object is already present" do
+    repository.put("Blobs", :blob)
+    result = repository.put("Blobs", :blob)
+    result.should be_a(MultiGit::Blob)
+    result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
+  end
+
   it "can add a blob from an IO ducktype" do
     io = double("io")
     io.should_receive(:read).and_return "Blobs"
@@ -56,6 +63,27 @@ shared_examples "an empty repository" do
   ensure
     File.unlink tmpfile.path if tmpfile
   end
+  end
+
+  it "can add a blob from a blob ducktype" do
+    blob = double("blob")
+    blob.extend(MultiGit::Blob)
+    blob.stub(:oid){ 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a' }
+    blob.should_receive(:to_io).and_return StringIO.new("Blobs")
+    result = repository.put(blob)
+    result.should be_a(MultiGit::Blob)
+    result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
+  end
+
+  it "short-circuts adding an already present blob" do
+    blob = double("blob")
+    blob.extend(MultiGit::Blob)
+    blob.stub(:oid){ 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a' }
+    blob.should_not_receive(:read)
+    repository.put("Blobs")
+    result = repository.put(blob)
+    result.should be_a(MultiGit::Blob)
+    result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
   end
 
   it "can read a previously added blob" do
@@ -251,6 +279,14 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
         MultiGit::Directory)
     end
 
+    it "has the right size" do
+      tree.size.should == 2
+    end
+
+    it "allows treating the tree as io" do
+      tree.to_io.read.bytes.to_a.should == [49, 48, 48, 54, 52, 52, 32, 98, 97, 114, 0, 37, 124, 197, 100, 44, 177, 160, 84, 240, 140, 200, 63, 45, 148, 62, 86, 253, 62, 190, 153, 52, 48, 48, 48, 48, 32, 102, 111, 111, 0, 239, 188, 23, 230, 30, 116, 109, 173, 92, 131, 75, 203, 148, 134, 155, 166, 107, 98, 100, 249]
+    end
+
     describe "#[]" do
 
       it "allows accessing entries by name" do
@@ -389,7 +425,7 @@ echo "120000 blob $OID\tfoo" | env -i git mktree`
 
     it "raises an error if we try to traverse it" do
       # This could loop forever, so ...
-      Timeout.timeout(0.2) do
+      Timeout.timeout(2) do
         expect{
           tree['foo']
         }.to raise_error(MultiGit::Error::CyclicSymlink)
@@ -398,14 +434,14 @@ echo "120000 blob $OID\tfoo" | env -i git mktree`
 
     it "allows traverse it without follow" do
       # This could loop forever, so ...
-      Timeout.timeout(0.2) do
+      Timeout.timeout(2) do
         tree['foo', follow: false].should be_a(MultiGit::Symlink)
       end
     end
 
     it "raises an error if we try to resolve it" do
       # This could loop forever, so ...
-      Timeout.timeout(0.2) do
+      Timeout.timeout(2) do
         expect{
           tree['foo', follow: false].resolve
         }.to raise_error(MultiGit::Error::CyclicSymlink)

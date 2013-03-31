@@ -54,6 +54,12 @@ module MultiGit::RuggedBackend
     #
     def put(content, type = :blob)
       validate_type(type)
+      if content.kind_of? MultiGit::Object
+        if include?(content.oid)
+          return read(content.oid)
+        end
+        content = content.to_io
+      end
       #if content.respond_to? :path
         # file duck-type
       #  oid = @git.hash_file(content.path, type)
@@ -87,6 +93,10 @@ module MultiGit::RuggedBackend
       rescue Rugged::ReferenceError => e
         raise MultiGit::Error::InvalidReference, e
       end
+    end
+
+    def include?(oid)
+      @git.include?(oid)
     end
 
     # @api private

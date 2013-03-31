@@ -2,14 +2,13 @@ require 'multi_git/tree'
 require 'multi_git/jgit_backend/object'
 module MultiGit::JGitBackend
 
-  class Tree
+  class Tree < Object
 
     EMPTY_BYTES = [].to_java :byte
 
     import 'org.eclipse.jgit.treewalk.CanonicalTreeParser'
 
     include MultiGit::Tree
-    include MultiGit::JGitBackend::Object
 
     def raw_entries
       return @raw_entries if @raw_entries

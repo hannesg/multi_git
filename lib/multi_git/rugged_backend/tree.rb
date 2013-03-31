@@ -1,9 +1,8 @@
 require 'multi_git/tree'
 require 'multi_git/rugged_backend/object'
 module MultiGit::RuggedBackend
-  class Tree
+  class Tree < Object
     include MultiGit::Tree
-    include MultiGit::RuggedBackend::Object
 
     def size
       rugged_object.count

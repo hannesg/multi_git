@@ -67,6 +67,12 @@ module MultiGit::GitBackend
     def put(content, type = :blob)
       validate_type(type)
       oid = nil
+      if content.kind_of? MultiGit::Object
+        if include?(content.oid)
+          return read(content.oid)
+        end
+        content = content.to_io
+      end
       if content.respond_to? :path
         oid = @git["hash-object",:t, type.to_s,:w,'--', content.path]
       else
@@ -102,6 +108,15 @@ module MultiGit::GitBackend
         return result
       rescue Cmd::Error::ExitCode128
         raise MultiGit::Error::InvalidReference, oidish
+      end
+    end
+
+    def include?(oid)
+      begin
+        @git['cat-file', :e, oid.to_s]
+        return true
+      rescue Cmd::Error::ExitCode1
+        return false
       end
     end
 
