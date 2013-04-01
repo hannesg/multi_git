@@ -84,7 +84,7 @@ module MultiGit::RuggedBackend
       oid = parse(oidish)
       object = @git.lookup(oid)
       verify_type_for_mode(object.type, mode)
-      return ENTRY_CLASSES[mode].new(parent, name, mode, self, oid, object)
+      return ENTRY_CLASSES[mode].new(parent, name, self, oid, object)
     end
 
     def parse(oidish)
@@ -102,6 +102,16 @@ module MultiGit::RuggedBackend
     # @api private
     def __backend__
       @git
+    end
+
+    # @api private
+    def make_tree(entries)
+      builder = Rugged::Tree::Builder.new
+      entries.each do |name, mode, oid|
+        builder << { name: name, oid: oid, filemode: mode}
+      end
+      oid = builder.write(@git)
+      return read(oid)
     end
 
   private

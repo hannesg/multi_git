@@ -100,10 +100,32 @@ shared_examples "an empty repository" do
     repository.parse(inserted.oid[0..10]).should == inserted.oid
   end
 
-  it "barfs when trying to read an oid", :focus => true do
+  it "barfs when trying to read an non-existing oid" do
     expect{
       repository.read("123456789abcdef")
     }.to raise_error(MultiGit::Error::InvalidReference)
+  end
+
+  it "can add a simple tree with #make_tree", :make_tree => true do
+    oida = repository.put("a").oid
+    oidb = repository.put("b").oid
+    oidc = repository.put("c").oid
+    tree = repository.make_tree([
+                                  ['c', 0100644, oidc],
+                                  ['a', 0100644, oida],
+                                  ['b', 0100644, oidb]
+                                ])
+    tree.oid.should == "24e88cb96c396400000ef706d1ca1ed9a88251aa"
+  end
+
+  it "can add a nested tree with #make_tree", :make_tree => true do
+    oida = repository.put("a").oid
+    inner_tree = repository.make_tree([
+                                  ['a', 0100644, oida],
+                                ])
+    tree = repository.make_tree([
+                                ['tree', 040000, inner_tree.oid]])
+    tree.oid.should == "ea743e8d65faf4e126f0d1c4629d1083a89ca6af"
   end
 
 end

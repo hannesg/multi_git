@@ -10,15 +10,21 @@ module MultiGit
     attr :mode
     attr :parent
 
-    def initialize(parent, name, mode,*args, &block)
+    def initialize(parent, name, *args, &block)
       @parent = parent
       @name = name
-      @mode = mode
       super(*args, &block)
     end
 
     def symlink?
       false
+    end
+
+    def with_parent(p)
+      dup.instance_eval do
+        @parent = p
+        return self
+      end
     end
 
   end

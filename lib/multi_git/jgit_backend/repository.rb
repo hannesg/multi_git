@@ -68,9 +68,6 @@ module MultiGit::JGitBackend
 
     def put(content, type = :blob)
       validate_type(type)
-      t_id = OBJECT_TYPE_IDS[type]
-      inserter = nil
-      reader = nil
       if content.kind_of? MultiGit::Object
         if include?(content.oid)
           return read(content.oid)
@@ -79,6 +76,8 @@ module MultiGit::JGitBackend
       end
       use_inserter do |inserter|
         begin
+          t_id = OBJECT_TYPE_IDS[type]
+          reader = nil
           if content.respond_to? :path
             path = content.path
             reader = Java::JavaIO::FileInputStream.new(path)
@@ -107,7 +106,23 @@ module MultiGit::JGitBackend
       object = use_reader{|rdr| rdr.open(java_oid) }
       type = REVERSE_OBJECT_TYPE_IDS.fetch(object.getType)
       verify_type_for_mode(type, mode)
-      return ENTRY_CLASSES[mode].new(parent, name, mode, self, java_oid, object)
+      return ENTRY_CLASSES[mode].new(parent, name, self, java_oid, object)
+    end
+
+    # @api private
+    def make_tree(entries)
+      fmt = Java::OrgEclipseJgitLib::TreeFormatter.new
+      # git mktree and rugged tree builder sort entries by name
+      # jgit tree builder doesn't
+      entries.sort_by{|name, _, _| name }.each do |name, mode, oid|
+        fmt.append(name,
+                   Java::OrgEclipseJgitLib::FileMode.fromBits(mode),
+                   Java::OrgEclipseJgitLib::ObjectId.fromString(oid))
+      end
+      use_inserter do |ins|
+        oid = fmt.insertTo(ins)
+        return read(oid)
+      end
     end
 
     def include?(oid)
@@ -120,6 +135,7 @@ module MultiGit::JGitBackend
 
     # @api private
     def parse_java(oidish)
+      return oidish if oidish.kind_of? Java::OrgEclipseJgitLib::AnyObjectId
       begin
         oid = @git.resolve(oidish)
         if oid.nil?

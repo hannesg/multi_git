@@ -96,7 +96,7 @@ module MultiGit::GitBackend
       oid = parse(oidish)
       type = @git['cat-file',:t, oid]
       verify_type_for_mode(type.to_sym, mode)
-      return ENTRY_CLASSES[mode].new(parent, name, mode, self, oid)
+      return ENTRY_CLASSES[mode].new(parent, name, self, oid)
     end
 
     def parse(oidish)
@@ -117,6 +117,19 @@ module MultiGit::GitBackend
         return true
       rescue Cmd::Error::ExitCode1
         return false
+      end
+    end
+
+    MKTREE_FORMAT = "%06o %s %s\t%s\n"
+
+    # @api private
+    def make_tree(entries)
+      @git.call('mktree') do |stdin, stdout|
+        entries.each do |name, mode, oid|
+          stdin.printf(MKTREE_FORMAT, mode, Utils.type_from_mode(mode), oid, name)
+        end
+        stdin.close
+        read(stdout.read.chomp)
       end
     end
 
