@@ -6,44 +6,10 @@ module MultiGit
     include MultiGit::Builder
     include Tree::Base
 
+    attr :entries
+
     def initialize(from = nil, &block)
       @entries = {}
-    end
-
-    def each
-      return to_enum unless block_given?
-      @entries.each do |_,e|
-        yield e
-      end
-    end
-
-    def raw_entries
-      raise "Persist #{self} first!"
-    end
-
-    def size
-      entries.size
-    end
-
-    def entry(key)
-      @entries[key]
-    end
-
-    def key?(key)
-      if key.kind_of? String
-        return @entries.key? key
-      else
-        # super handles Integer and all other cases
-        super
-      end
-    end
-
-    def [](key, options = {})
-      if key.kind_of? Integer
-        return @entries.values[key]
-      else
-        return super
-      end
     end
 
     def []=(key, options = {}, value)
