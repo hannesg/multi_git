@@ -1,15 +1,44 @@
 require 'multi_git/object'
+require 'multi_git/builder'
 module MultiGit
   module Blob
 
-    include MultiGit::Object
+    module Base
+      def blob?
+        true
+      end
 
-    def blob?
-      true
+      def type
+        :blob
+      end
     end
 
-    def type
-      :blob
+    class Builder < StringIO
+      include Base
+      include MultiGit::Builder
+
+      def initialize(content = nil)
+        super()
+        if content.kind_of? String
+          self << content
+        elsif content.kind_of? IO
+          IO.copy_stream(content, self)
+        elsif content
+          raise ArgumentError
+        end
+      end
+
+      def >>(repo)
+        rewind
+        return repo.put(read, :blob)
+      end
+    end
+
+    include Object
+    include Base
+
+    def to_builder
+      Builder.new(self)
     end
 
   end

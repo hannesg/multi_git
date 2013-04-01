@@ -4,10 +4,7 @@ module MultiGit
 
   module TreeEntry
 
-    include MultiGit::Object
-
     attr :name
-    attr :mode
     attr :parent
 
     def initialize(parent, name, *args, &block)
@@ -25,6 +22,11 @@ module MultiGit
         @parent = p
         return self
       end
+    end
+
+    def >>(repo)
+      result = super
+      return repo.read_entry(parent, name, mode, result.oid)
     end
 
   end

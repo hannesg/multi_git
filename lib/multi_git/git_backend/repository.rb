@@ -65,6 +65,9 @@ module MultiGit::GitBackend
     end
 
     def put(content, type = :blob)
+      if content.kind_of? MultiGit::Builder
+        return content >> self
+      end
       validate_type(type)
       oid = nil
       if content.kind_of? MultiGit::Object

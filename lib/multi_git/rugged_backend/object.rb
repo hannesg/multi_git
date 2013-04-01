@@ -2,6 +2,8 @@ require 'forwardable'
 require 'multi_git/object'
 class MultiGit::RuggedBackend::Object < IO
 
+  include MultiGit::Object
+
   extend Forwardable
 
   delegate (IO.public_instance_methods-::Object.public_instance_methods) => 'to_io'

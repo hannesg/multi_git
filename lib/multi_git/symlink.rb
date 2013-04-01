@@ -5,11 +5,12 @@ module MultiGit
     include TreeEntry
 
     def target
+      rewind
       @target ||= read
     end
 
     def resolve
-      parent.traverse(read, :follow => :path)
+      parent.traverse(target, :follow => :path)
     end
 
     def symlink?

@@ -53,6 +53,9 @@ module MultiGit::RuggedBackend
 
     #
     def put(content, type = :blob)
+      if content.kind_of? MultiGit::Builder
+        return content >> self
+      end
       validate_type(type)
       if content.kind_of? MultiGit::Object
         if include?(content.oid)

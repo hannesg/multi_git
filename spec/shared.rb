@@ -67,6 +67,7 @@ shared_examples "an empty repository" do
 
   it "can add a blob from a blob ducktype" do
     blob = double("blob")
+    blob.extend(MultiGit::Object)
     blob.extend(MultiGit::Blob)
     blob.stub(:oid){ 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a' }
     blob.should_receive(:to_io).and_return StringIO.new("Blobs")
@@ -77,6 +78,7 @@ shared_examples "an empty repository" do
 
   it "short-circuts adding an already present blob" do
     blob = double("blob")
+    blob.extend(MultiGit::Object)
     blob.extend(MultiGit::Blob)
     blob.stub(:oid){ 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a' }
     blob.should_not_receive(:read)
@@ -84,6 +86,22 @@ shared_examples "an empty repository" do
     result = repository.put(blob)
     result.should be_a(MultiGit::Blob)
     result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
+  end
+
+  it "can add a File::Builder" do
+    fb = MultiGit::File::Builder.new(nil, "a", "Blobs")
+    result = repository.put(fb)
+    result.should be_a(MultiGit::Object)
+    result.name.should == 'a'
+    result.oid.should ==  'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
+  end
+
+  it "can add a Tree::Builder" do
+    fb = MultiGit::File::Builder.new(nil, "a", "Blobs")
+    result = repository.put(fb)
+    result.should be_a(MultiGit::Object)
+    result.name.should == 'a'
+    result.oid.should ==  'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
   end
 
   it "can read a previously added blob" do
@@ -273,23 +291,6 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
     it "knows the size" do
       tree = repository.read(tree_oid)
       tree.size.should == 2
-    end
-
-    it "iterates over the raw tree entries" do
-      tree = repository.read(tree_oid)
-      expect{|yld|
-        tree.raw_each(&yld)
-      }.to yield_successive_args(
-        ["bar", 33188, "257cc5642cb1a054f08cc83f2d943e56fd3ebe99"],
-        ["foo", 16384, "efbc17e61e746dad5c834bcb94869ba66b6264f9"])
-    end
-
-    it "has a list of raw tree entries" do
-      tree = repository.read(tree_oid)
-      tree.raw_entries.should == [
-        ["bar", 33188, "257cc5642cb1a054f08cc83f2d943e56fd3ebe99"],
-        ["foo", 16384, "efbc17e61e746dad5c834bcb94869ba66b6264f9"]
-      ]
     end
 
     it "iterates over the tree" do

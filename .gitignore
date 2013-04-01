@@ -1,2 +1,4 @@
 coverage/*
 .jbundler/*
+.rbx
+.jrubyrc
