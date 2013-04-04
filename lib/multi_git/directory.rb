@@ -1,3 +1,4 @@
+require 'multi_git/tree'
 require 'multi_git/tree_entry'
 module MultiGit
 

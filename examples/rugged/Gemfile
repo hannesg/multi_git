@@ -1,0 +1,6 @@
+source "https://rubygems.org"
+
+gem "multi_git", path: '../../'
+
+# Use rugged here
+gem "rugged", ">= 0.17.0.b7"

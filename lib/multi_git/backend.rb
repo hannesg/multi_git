@@ -11,11 +11,11 @@ module MultiGit
     end
 
     def self.best(preferences = DEFAULT_PREFERENCES, *rest)
-      prefs = (Array(prereferences) + rest).flatten!
+      prefs = (Array(preferences) + rest).flatten
       prefs.each do |p|
         backend = self[p]
-        raise ArgumentError, "Not a backend: #{p}"
-        return p if backend.available?
+        raise ArgumentError, "Not a backend: #{p}" unless backend
+        return backend if backend.available?
       end
       raise ArgumentError, "No backend available for #{prefs.inspect}."
     end

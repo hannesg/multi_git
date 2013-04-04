@@ -1,0 +1,16 @@
+PATH
+  remote: ../../
+  specs:
+    multi_git (0.0.1.alpha1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    rugged (0.17.0.b7)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  multi_git!
+  rugged (>= 0.17.0.b7)

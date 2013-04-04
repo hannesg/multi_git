@@ -1,0 +1,23 @@
+PATH
+  remote: ../../
+  specs:
+    multi_git (0.0.1.alpha1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    jbundler (0.4.1)
+      maven-tools (~> 0.32.1)
+      ruby-maven (~> 3.0.4)
+    maven-tools (0.32.4)
+    ruby-maven (3.0.4.1.4)
+      maven-tools (~> 0.32.3)
+      thor (>= 0.14.6, < 2.0)
+    thor (0.17.0)
+
+PLATFORMS
+  java
+
+DEPENDENCIES
+  jbundler
+  multi_git!

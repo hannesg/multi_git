@@ -23,6 +23,10 @@ module MultiGit::Repository
     base.extend(ClassMethods)
   end
 
+  def [](*args,&block)
+    read(*args,&block)
+  end
+
   def inspect
     if bare?
       ["#<",self.class.name," ",git_dir,">"].join

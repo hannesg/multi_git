@@ -1,3 +1,4 @@
+require 'stringio'
 require 'multi_git/object'
 require 'multi_git/builder'
 module MultiGit
