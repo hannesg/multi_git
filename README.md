@@ -21,7 +21,7 @@ multi\_git comes with three different backends:
     
     Cons:
       - forks a lot (slow)
-  - JGit Backend ( see [example](examples/jgit/README.md) )
+  - JGit Backend ( see [example](examples/jgit/) )
     
     Pros:
       - build upon jgit jar which is quite fast and stable
@@ -29,7 +29,7 @@ multi\_git comes with three different backends:
     
     Cons:
       - requires jruby
-  - Rugged Backend ( see [example](examples/rugged/README.md) )
+  - Rugged Backend ( see [example](examples/rugged/ )
     
     Pros:
       - build upon libgit2, the new git library
