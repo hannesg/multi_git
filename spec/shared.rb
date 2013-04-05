@@ -97,11 +97,18 @@ shared_examples "an empty repository" do
   end
 
   it "can add a Tree::Builder" do
-    fb = MultiGit::File::Builder.new(nil, "a", "Blobs")
-    result = repository.put(fb)
-    result.should be_a(MultiGit::Object)
-    result.name.should == 'a'
-    result.oid.should ==  'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
+    tb = MultiGit::Tree::Builder.new do
+      file "a", "b"
+      directory "c" do
+        file "d", "e"
+      end
+    end
+    result = repository.put(tb)
+    result.should be_a(MultiGit::Tree)
+    result['a'].should be_a(MultiGit::File)
+    result['c'].should be_a(MultiGit::Directory)
+    result['c/d'].should be_a(MultiGit::File)
+    result.oid.should ==  'b490aa5179132fe8ea44df539cf8ede23d9cc5e2'
   end
 
   it "can read a previously added blob" do

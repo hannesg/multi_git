@@ -10,6 +10,7 @@ module MultiGit
 
     def initialize(from = nil, &block)
       @entries = {}
+      instance_eval(&block) if block
     end
 
     def []=(key, options = {}, value)
@@ -19,9 +20,9 @@ module MultiGit
 
     def >>(repository)
       ent = []
-      @entries.each do |name, (mode, content)|
-        object = repository.put(content, Utils.type_from_mode(mode))
-        ent << [name, mode, object.oid]
+      @entries.each do |name, entry|
+        object = repository.put(entry)
+        ent << [name, object.mode, object.oid]
       end
       return repository.make_tree(ent)
     end
