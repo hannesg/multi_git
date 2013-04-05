@@ -2,24 +2,6 @@ module MultiGit
 
   module Backend
 
-    BACKENDS = {}
-
-    DEFAULT_PREFERENCES = [:jgit, :rugged, :git]
-
-    def self.[](name)
-      BACKENDS[name]
-    end
-
-    def self.best(preferences = DEFAULT_PREFERENCES, *rest)
-      prefs = (Array(preferences) + rest).flatten
-      prefs.each do |p|
-        backend = self[p]
-        raise ArgumentError, "Not a backend: #{p}" unless backend
-        return backend if backend.available?
-      end
-      raise ArgumentError, "No backend available for #{prefs.inspect}."
-    end
-
     def check(description, &check)
       @checks ||= []
       @checks << [description, check]
@@ -109,8 +91,4 @@ module MultiGit
     end
 
   end
-
-  Backend::BACKENDS[:rugged] = RuggedBackend
-  Backend::BACKENDS[:jgit] = JGitBackend
-  Backend::BACKENDS[:git] = GitBackend
 end

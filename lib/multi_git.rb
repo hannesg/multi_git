@@ -1,36 +1,19 @@
+require 'forwardable'
 require 'multi_git/backend'
+require 'multi_git/backend_set'
 require 'multi_git/error'
 require 'multi_git/utils'
 module MultiGit
 
-  class << self
+  BACKENDS = BackendSet.new
+  BACKENDS[   :git, priority: 0] = GitBackend
+  BACKENDS[:rugged, priority: 1] = RuggedBackend
+  BACKENDS[  :jgit, priority: 2] = JGitBackend
 
-    def best
-      @best ||= Backend.best
-    end
+  extend SingleForwardable
 
-    def current
-      @current ||= best
-    end
+  delegate :best => 'MultiGit::BACKENDS'
 
-    def current=(backend)
-      if backend == :best
-        @current = best
-      else
-        @current = Backend[backend]
-      end
-    end
-
-    def open(path, options = {} )
-      bo = options[:backend] || :current
-      backend = case bo
-        when :current then current
-        when :best    then best
-        else Backend[bo]
-      end
-      backend.open(path, options)
-    end
-
-  end
+  delegate :open => 'best'
 
 end
