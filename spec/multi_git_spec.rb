@@ -37,4 +37,20 @@ describe MultiGit do
     end
   end
 
+  describe '#open' do
+
+    let(:tempdir) do
+      Dir.mktmpdir('multi_git')
+    end
+
+    after(:each) do
+      FileUtils.rm_rf( tempdir )
+    end
+
+    it "works" do
+      MultiGit.open(tempdir, init: true).should be_a(MultiGit::Repository)
+    end
+
+  end
+
 end

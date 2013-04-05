@@ -2,7 +2,9 @@ module MultiGit
 
   module Backend
 
-    def check(description, &check)
+    attr :failed, :exception
+
+     def check(description, &check)
       @checks ||= []
       @checks << [description, check]
     end
@@ -12,11 +14,12 @@ module MultiGit
         begin 
           result = check.call
           if result == false
-            @failed = [description, nil]
+            @failed = description
             return
           end
         rescue Exception => e
-          @failed = [description, e]
+          @failed = description
+          @exception = e
         end
       end
     end
@@ -37,10 +40,6 @@ module MultiGit
     def available?
       check!
       @failed.nil?
-    end
-
-    def fail
-      @failed
     end
 
   end
