@@ -11,9 +11,7 @@ module MultiGit::GitBackend
   Symlink = Class.new(Blob){ include MultiGit::Symlink }
   Directory = Class.new(Tree){ include MultiGit::Directory }
 
-  class Repository
-
-    include MultiGit::Repository
+  class Repository < MultiGit::Repository
 
     # @api private
     def __backend__
@@ -64,7 +62,11 @@ module MultiGit::GitBackend
       verify_bareness(path, options)
     end
 
-    def put(content, type = :blob)
+    # {include:MultiGit::Repository#write}
+    # @param (see MultiGit::Repository#write)
+    # @raise (see MultiGit::Repository#write)
+    # @return (see MultiGit::Repository#write)
+    def write(content, type = :blob)
       if content.kind_of? MultiGit::Builder
         return content >> self
       end
@@ -89,6 +91,10 @@ module MultiGit::GitBackend
       return OBJECT_CLASSES[type].new(self,oid)
     end
 
+    # {include:MultiGit::Repository#read}
+    # @param (see MultiGit::Repository#read)
+    # @raise (see MultiGit::Repository#read)
+    # @return (see MultiGit::Repository#read)
     def read(oidish)
       oid = parse(oidish)
       type = @git['cat-file',:t, oid]
@@ -102,6 +108,10 @@ module MultiGit::GitBackend
       return ENTRY_CLASSES[mode].new(parent, name, self, oid)
     end
 
+    # {include:MultiGit::Repository#parse}
+    # @param (see MultiGit::Repository#parse)
+    # @raise (see MultiGit::Repository#parse)
+    # @return (see MultiGit::Repository#parse)
     def parse(oidish)
       begin
         result = @git['rev-parse', :revs_only, :validate, oidish.to_s]
@@ -114,6 +124,10 @@ module MultiGit::GitBackend
       end
     end
 
+    # {include:MultiGit::Repository#include?}
+    # @param (see MultiGit::Repository#include?)
+    # @raise (see MultiGit::Repository#include?)
+    # @return (see MultiGit::Repository#include?)
     def include?(oid)
       begin
         @git['cat-file', :e, oid.to_s]
@@ -123,8 +137,10 @@ module MultiGit::GitBackend
       end
     end
 
+    # @visibility private
     MKTREE_FORMAT = "%06o %s %s\t%s\n"
 
+    # @visibility private
     # @api private
     def make_tree(entries)
       @git.call('mktree') do |stdin, stdout|

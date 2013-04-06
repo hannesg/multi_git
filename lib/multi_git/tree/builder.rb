@@ -21,7 +21,7 @@ module MultiGit
     def >>(repository)
       ent = []
       @entries.each do |name, entry|
-        object = repository.put(entry)
+        object = repository.write(entry)
         ent << [name, object.mode, object.oid]
       end
       return repository.make_tree(ent)

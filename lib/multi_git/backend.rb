@@ -1,10 +1,12 @@
+require 'multi_git/utils'
+require 'multi_git/error'
 module MultiGit
 
   module Backend
 
     attr :failed, :exception
 
-     def check(description, &check)
+    def check(description, &check)
       @checks ||= []
       @checks << [description, check]
     end
@@ -24,19 +26,24 @@ module MultiGit
       end
     end
 
-    def file_loadeable?(file)
-      $LOAD_PATH.any?{|path| File.exists?( File.join(path, file) ) }
-    end
+    private :check, :check!
 
+    # @abstract
+    #
+    # This method implements loading the backend files.
     def load!
-      raise "Please implement load! for #{self}"
+      raise NotImplementedError, "Please implement #load! for #{self}"
     end
 
-    def open(*args, &block)
+    # Opens a git repository.
+    #
+    # @return [Repository]
+    def open(directory, options = {})
       load!
-      open(*args, &block)
+      open(directory, options)
     end
 
+    # Tests whether this backend is available.
     def available?
       check!
       @failed.nil?
@@ -50,7 +57,7 @@ module MultiGit
 
     check "Rugged available" do
       defined?(::Rugged) || 
-        file_loadeable?('rugged.rb')
+        Utils.file_loadeable?('rugged.rb')
     end
 
     def self.load!

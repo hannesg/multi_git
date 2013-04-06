@@ -1,6 +1,18 @@
 module MultiGit
   module Utils
 
+    module AbstractMethods
+
+      def abstract(name)
+        class_eval <<RUBY
+def #{name}(*args, &block)
+  raise NotImplementedError, "Please implement #{name} for \#{self}"
+end
+RUBY
+      end
+
+    end
+
     MODE_SYMLINK =     0120000
     MODE_SUBMODULE =   0160000
     MODE_DIRECTORY =   0040000
@@ -27,6 +39,11 @@ module MultiGit
       return nil unless ::File.exists?(path)
       return !::File.exists?(::File.join(path,'.git')) &&
         ::File.exists?(::File.join(path,'refs'))
+    end
+
+    # @api private
+    def file_loadeable?(file)
+      $LOAD_PATH.any?{|path| File.exists?( File.join(path, file) ) }
     end
 
     def type_from_mode(mode)

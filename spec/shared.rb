@@ -32,14 +32,14 @@ end
 shared_examples "an empty repository" do
 
   it "can add a blob from string" do
-    result = repository.put("Blobs", :blob)
+    result = repository.write("Blobs", :blob)
     result.should be_a(MultiGit::Blob)
     result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
   end
 
   it "behaves nice if an object is already present" do
-    repository.put("Blobs", :blob)
-    result = repository.put("Blobs", :blob)
+    repository.write("Blobs", :blob)
+    result = repository.write("Blobs", :blob)
     result.should be_a(MultiGit::Blob)
     result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
   end
@@ -47,7 +47,7 @@ shared_examples "an empty repository" do
   it "can add a blob from an IO ducktype" do
     io = double("io")
     io.should_receive(:read).and_return "Blobs"
-    result = repository.put(io, :blob)
+    result = repository.write(io, :blob)
     result.should be_a(MultiGit::Blob)
     result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
   end
@@ -57,7 +57,7 @@ shared_examples "an empty repository" do
     tmpfile = Tempfile.new('multi_git')
     tmpfile.write "Blobs"
     tmpfile.rewind
-    result = repository.put(tmpfile, :blob)
+    result = repository.write(tmpfile, :blob)
     result.should be_a(MultiGit::Blob)
     result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
   ensure
@@ -71,7 +71,7 @@ shared_examples "an empty repository" do
     blob.extend(MultiGit::Blob)
     blob.stub(:oid){ 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a' }
     blob.should_receive(:to_io).and_return StringIO.new("Blobs")
-    result = repository.put(blob)
+    result = repository.write(blob)
     result.should be_a(MultiGit::Blob)
     result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
   end
@@ -82,15 +82,15 @@ shared_examples "an empty repository" do
     blob.extend(MultiGit::Blob)
     blob.stub(:oid){ 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a' }
     blob.should_not_receive(:read)
-    repository.put("Blobs")
-    result = repository.put(blob)
+    repository.write("Blobs")
+    result = repository.write(blob)
     result.should be_a(MultiGit::Blob)
     result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
   end
 
   it "can add a File::Builder" do
     fb = MultiGit::File::Builder.new(nil, "a", "Blobs")
-    result = repository.put(fb)
+    result = repository.write(fb)
     result.should be_a(MultiGit::Object)
     result.name.should == 'a'
     result.oid.should ==  'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
@@ -103,7 +103,7 @@ shared_examples "an empty repository" do
         file "d", "e"
       end
     end
-    result = repository.put(tb)
+    result = repository.write(tb)
     result.should be_a(MultiGit::Tree)
     result['a'].should be_a(MultiGit::File)
     result['c'].should be_a(MultiGit::Directory)
@@ -112,7 +112,7 @@ shared_examples "an empty repository" do
   end
 
   it "can read a previously added blob" do
-    inserted = repository.put("Blobs", :blob)
+    inserted = repository.write("Blobs", :blob)
     object = repository.read(inserted.oid)
     object.should be_a(MultiGit::Blob)
     object.read.should == "Blobs"
@@ -121,7 +121,7 @@ shared_examples "an empty repository" do
   end
 
   it "can parse a sha1-prefix to the full oid" do
-    inserted = repository.put("Blobs", :blob)
+    inserted = repository.write("Blobs", :blob)
     repository.parse(inserted.oid[0..10]).should == inserted.oid
   end
 
@@ -132,9 +132,9 @@ shared_examples "an empty repository" do
   end
 
   it "can add a simple tree with #make_tree", :make_tree => true do
-    oida = repository.put("a").oid
-    oidb = repository.put("b").oid
-    oidc = repository.put("c").oid
+    oida = repository.write("a").oid
+    oidb = repository.write("b").oid
+    oidc = repository.write("c").oid
     tree = repository.make_tree([
                                   ['c', 0100644, oidc],
                                   ['a', 0100644, oida],
@@ -144,7 +144,7 @@ shared_examples "an empty repository" do
   end
 
   it "can add a nested tree with #make_tree", :make_tree => true do
-    oida = repository.put("a").oid
+    oida = repository.write("a").oid
     inner_tree = repository.make_tree([
                                   ['a', 0100644, oida],
                                 ])
@@ -259,7 +259,7 @@ shared_examples "a MultiGit backend" do
     end
 
     def make_blob(content)
-      obj = repository.put(content)
+      obj = repository.write(content)
       repository.read(obj.oid)
     end
 

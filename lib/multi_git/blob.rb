@@ -31,7 +31,7 @@ module MultiGit
 
       def >>(repo)
         rewind
-        return repo.put(read, :blob)
+        return repo.write(read)
       end
     end
 

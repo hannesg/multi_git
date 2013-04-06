@@ -12,8 +12,19 @@ module MultiGit
 
   extend SingleForwardable
 
+  # Determines the best available backend..
+  #
+  # @return [Backend]
   delegate :best => 'MultiGit::BACKENDS'
 
+  # @!method open( directory, options = {} )
+  #
+  #   Opens a git repository.
+  #
+  #   @return [Repository]
+  #
+  #   @see Backend
+  # 
   delegate :open => 'best'
 
 end

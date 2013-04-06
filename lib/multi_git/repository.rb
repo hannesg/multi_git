@@ -8,25 +8,84 @@ require 'multi_git/directory'
 require 'multi_git/file'
 require 'multi_git/executeable'
 require 'multi_git/submodule'
-module MultiGit::Repository
+class MultiGit::Repository
 
+protected
   Utils = MultiGit::Utils
   Error = MultiGit::Error
 
   VALID_TYPES = Set[:blob, :tree, :commit, :tag]
+public
+  extend Utils::AbstractMethods
 
-  module ClassMethods
-    include Forwardable
-  end
+  # @!method git_dir
+  #   @abstract
+  #   Return the repository base directory
+  #   @return [String]
+  abstract :git_dir
 
-  def self.included(base)
-    base.extend(ClassMethods)
-  end
+  # @!method bare?
+  #   @abstract
+  #   Is this repository bare?
+  abstract :bare?
 
+  # @!method initialize(directory, options = {})
+  #   @param directory [String] a directory
+  #   @option options [Boolean] :init init the repository if it doesn't exist
+  #   @option options [Boolean] :bare open/init the repository bare
+
+  # @!method read(ref)
+  #   Reads a reference.
+  #
+  #   @abstract
+  #
+  #   @raise [MultiGit::Error::InvalidReference] if ref is not a valid reference
+  #   @raise [MultiGit::Error::AmbiguousReference] if ref refers to multiple objects
+  #   @raise [MultiGit::Error::BadRevisionSyntax] if ref does not contain a valid ref-syntax
+  #   @param [String] ref
+  #   @return [MultiGit::Object] object
+  abstract :read
+
+  # @!method include?(oid)
+  #   Checks whether this repository contains a given oid.
+  #   @abstract
+  #   @param [String] oid
+  #   @return [Boolean]
+  abstract :include?
+
+  # @!method parse(ref)
+  #   Resolves a reference into an oid.
+  #   @abstract
+  #   @param [String] ref
+  #   @raise [MultiGit::Error::InvalidReference] if ref is not a valid reference
+  #   @raise [MultiGit::Error::AmbiguousReference] if ref refers to multiple objects
+  #   @raise [MultiGit::Error::BadRevisionSyntax] if ref does not contain a valid ref-syntax
+  #   @return [String] oid
+  abstract :parse
+
+  # @!method write(content)
+  #   Writes something to the repository.
+  #
+  #   If called with a String or an IO, this method creates a {MultiGit::Blob} with the
+  #   given content. This is the easiest way to create blobs.
+  #
+  #   If called with a {MultiGit::Object}, this method determines if the object does already exist 
+  #   and writes it otherwise.
+  #
+  #   If called with a {MultiGit::Builder}, this method inserts the content of the builder to the 
+  #   repository. This is the easiest way to create trees/commits.
+  #
+  #   @abstract
+  #   @param [String, IO, MultiGit::Object, MultiGit::Builder] content
+  #   @return [MultiGit::Object] the resulting object
+  abstract :write
+
+  # @!parse alias [] read
   def [](*args,&block)
     read(*args,&block)
   end
 
+  # @visibility private
   def inspect
     if bare?
       ["#<",self.class.name," ",git_dir,">"].join

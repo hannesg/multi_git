@@ -5,8 +5,12 @@ module MultiGit
       def load!
       end
 
-      def open(path, options = {})
-        Repository.new(path, options)
+      def available?
+        true
+      end
+
+      def open(directory, options = {})
+        Repository.new(directory, options)
       end
 
     end

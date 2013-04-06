@@ -9,9 +9,11 @@ module MultiGit::RuggedBackend
   Symlink = Class.new(Blob){ include MultiGit::Symlink }
   Directory = Class.new(Tree){ include MultiGit::Directory }
 
-  class Repository
-    include MultiGit::Repository
+  class Repository < MultiGit::Repository
 
+    extend Forwardable
+
+  private
     OBJECT_CLASSES = {
       :blob => Blob,
       :tree => Tree
@@ -23,9 +25,12 @@ module MultiGit::RuggedBackend
       Utils::MODE_SYMLINK     => Symlink,
       Utils::MODE_DIRECTORY   => Directory
     }
+  public
 
+    # {include:MultiGit::Repository#bare?}
     delegate "bare?" => "@git"
 
+    # {include:MultiGit::Repository#git_dir}
     def git_dir
       strip_slash @git.path
     end
@@ -51,8 +56,11 @@ module MultiGit::RuggedBackend
       verify_bareness(path, options)
     end
 
-    #
-    def put(content, type = :blob)
+    # {include:MultiGit::Repository#write}
+    # @param (see MultiGit::Repository#write)
+    # @raise (see MultiGit::Repository#write)
+    # @return (see MultiGit::Repository#write)
+    def write(content, type = :blob)
       if content.kind_of? MultiGit::Builder
         return content >> self
       end
@@ -76,13 +84,18 @@ module MultiGit::RuggedBackend
       return OBJECT_CLASSES[type].new(self, oid)
     end
 
-    def read(oidish)
-      oid = parse(oidish)
+    # {include:MultiGit::Repository#read}
+    # @param (see MultiGit::Repository#read)
+    # @raise (see MultiGit::Repository#read)
+    # @return (see MultiGit::Repository#read)
+    def read(ref)
+      oid = parse(ref)
       object = @git.lookup(oid)
       return OBJECT_CLASSES[object.type].new(self, oid, object)
     end
 
     # @api private
+    # @visibility private
     def read_entry(parent = nil, name, mode, oidish)
       oid = parse(oidish)
       object = @git.lookup(oid)
@@ -90,6 +103,10 @@ module MultiGit::RuggedBackend
       return ENTRY_CLASSES[mode].new(parent, name, self, oid, object)
     end
 
+    # {include:MultiGit::Repository#parse}
+    # @param (see MultiGit::Repository#parse)
+    # @raise (see MultiGit::Repository#parse)
+    # @return (see MultiGit::Repository#parse)
     def parse(oidish)
       begin
         return Rugged::Object.rev_parse_oid(@git, oidish)
@@ -98,16 +115,22 @@ module MultiGit::RuggedBackend
       end
     end
 
+    # {include:MultiGit::Repository#include?}
+    # @param (see MultiGit::Repository#include?)
+    # @raise (see MultiGit::Repository#include?)
+    # @return (see MultiGit::Repository#include?)
     def include?(oid)
       @git.include?(oid)
     end
 
     # @api private
+    # @visibility private
     def __backend__
       @git
     end
 
     # @api private
+    # @visibility private
     def make_tree(entries)
       builder = Rugged::Tree::Builder.new
       entries.each do |name, mode, oid|

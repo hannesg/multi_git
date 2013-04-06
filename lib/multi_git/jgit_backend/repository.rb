@@ -9,11 +9,11 @@ module MultiGit::JGitBackend
   Symlink = Class.new(Blob){ include MultiGit::Symlink }
   Directory = Class.new(Tree){ include MultiGit::Directory }
 
-  class Repository
-    include MultiGit::Repository
+  class Repository < MultiGit::Repository
 
-    delegate "bare?" => "@git"
+    extend Forwardable
 
+  private
     OBJECT_CLASSES = {
       :blob => Blob,
       :tree => Tree
@@ -36,6 +36,9 @@ module MultiGit::JGitBackend
     }
 
     REVERSE_OBJECT_TYPE_IDS = Hash[ OBJECT_TYPE_IDS.map{|k,v| [v,k]} ]
+  public
+
+    delegate "bare?" => "@git"
 
     def git_dir
       @git.getDirectory.to_s
@@ -66,7 +69,11 @@ module MultiGit::JGitBackend
       verify_bareness(path, options)
     end
 
-    def put(content, type = :blob)
+    # {include:MultiGit::Repository#write}
+    # @param (see MultiGit::Repository#write)
+    # @raise (see MultiGit::Repository#write)
+    # @return (see MultiGit::Repository#write)
+    def write(content, type = :blob)
       if content.kind_of? MultiGit::Builder
         return content >> self
       end
@@ -96,13 +103,18 @@ module MultiGit::JGitBackend
       end
     end
 
-    def read(oidish)
-      java_oid = parse_java(oidish)
+    # {include:MultiGit::Repository#read}
+    # @param (see MultiGit::Repository#read)
+    # @raise (see MultiGit::Repository#read)
+    # @return (see MultiGit::Repository#read)
+    def read(read)
+      java_oid = parse_java(read)
       object = use_reader{|rdr| rdr.open(java_oid) }
       type = REVERSE_OBJECT_TYPE_IDS.fetch(object.getType)
       return OBJECT_CLASSES[type].new(self, java_oid, object)
     end
 
+    # @visibility private
     # @api private
     def read_entry(parent = nil, name, mode, oidish)
       java_oid = parse_java(oidish)
@@ -112,6 +124,7 @@ module MultiGit::JGitBackend
       return ENTRY_CLASSES[mode].new(parent, name, self, java_oid, object)
     end
 
+    # @visibility private
     # @api private
     def make_tree(entries)
       fmt = Java::OrgEclipseJgitLib::TreeFormatter.new
@@ -128,14 +141,23 @@ module MultiGit::JGitBackend
       end
     end
 
+    # {include:MultiGit::Repository#include?}
+    # @param (see MultiGit::Repository#include?)
+    # @raise (see MultiGit::Repository#include?)
+    # @return (see MultiGit::Repository#include?)
     def include?(oid)
       @git.hasObject(Java::OrgEclipseJgitLib::ObjectId.fromString(oid))
     end
 
-    def parse(oidish)
-      return Java::OrgEclipseJgitLib::ObjectId.toString(parse_java(oidish))
+    # {include:MultiGit::Repository#parse}
+    # @param (see MultiGit::Repository#parse)
+    # @raise (see MultiGit::Repository#parse)
+    # @return (see MultiGit::Repository#parse)
+    def parse(ref)
+      return Java::OrgEclipseJgitLib::ObjectId.toString(parse_java(ref))
     end
 
+    # @visibility private
     # @api private
     def parse_java(oidish)
       return oidish if oidish.kind_of? Java::OrgEclipseJgitLib::AnyObjectId
@@ -172,6 +194,7 @@ module MultiGit::JGitBackend
       end
     end
 
+    # @visibility private
     # @api private
     def __backend__
       @git
