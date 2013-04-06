@@ -80,9 +80,14 @@ public
   #   @return [MultiGit::Object] the resulting object
   abstract :write
 
-  # @!parse alias [] read
+  # @!parse alias_method :[], :read
   def [](*args,&block)
     read(*args,&block)
+  end
+
+  # @!parse alias_method :<<, :write
+  def <<(*args,&block)
+    write(*args,&block)
   end
 
   # @visibility private
