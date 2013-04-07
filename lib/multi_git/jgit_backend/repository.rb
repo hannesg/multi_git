@@ -174,6 +174,7 @@ module MultiGit::JGitBackend
       end
     end
 
+    # @visibility private
     # @api private
     def use_reader
       begin
@@ -184,6 +185,7 @@ module MultiGit::JGitBackend
       end
     end
 
+    # @visibility private
     # @api private
     def use_inserter
       begin

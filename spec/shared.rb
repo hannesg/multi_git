@@ -338,34 +338,13 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
         tree['foo/bar'].should be_a(MultiGit::File)
       end
 
-      it "raises an error for out-of-bound offset" do
-        expect{ tree[2] }.to raise_error(ArgumentError, /Index 2 out of bound/)
-      end
-
-      it "raises an error for float offset" do
-        expect{ tree[0.5] }.to raise_error(ArgumentError, /Expected an Integer or a String/)
+      it "raises an error for an object" do
+        expect{ tree[Object.new] }.to raise_error(ArgumentError, /Expected a String/)
       end
 
     end
 
     describe "#key?" do
-
-      it "confirms correctly for integers" do
-        tree.key?(0).should be_true
-      end
-
-      it "confirms correctly for negative integers" do
-        tree.key?(-2).should be_true
-      end
-
-      it "declines correctly for integers" do
-        tree.key?(2).should be_false
-      end
-
-      it "declines correctly for negative integers" do
-        tree.key?(-3).should be_false
-      end
-
       it "confirms correctly for names" do
         tree.key?('foo').should be_true
       end
@@ -374,8 +353,8 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
         tree.key?('blub').should be_false
       end
 
-      it "raises an error for floats" do
-        expect{ tree.key? 0.5 }.to raise_error(ArgumentError, /Expected an Integer or a String/)
+      it "raises an error for objects" do
+        expect{ tree.key? Object.new }.to raise_error(ArgumentError, /Expected a String/)
       end
     end
 
@@ -387,10 +366,6 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
 
       it "allows accessing nested entries with a slash" do
         (tree / 'foo/bar').should be_a(MultiGit::File)
-      end
-
-      it "allows accessing entries by offset" do
-        tree[0].should be_a(MultiGit::File)
       end
 
       it "raises an error for missing entry offset" do

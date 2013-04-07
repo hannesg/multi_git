@@ -8,6 +8,9 @@ require 'multi_git/directory'
 require 'multi_git/file'
 require 'multi_git/executeable'
 require 'multi_git/submodule'
+
+# Abstract base class for all repository implementations.
+# @abstract
 class MultiGit::Repository
 
 protected

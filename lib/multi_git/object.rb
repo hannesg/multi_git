@@ -1,5 +1,7 @@
 require 'multi_git/utils'
 module MultiGit
+
+  # This is a base-module for all objects.
   module Object
 
     extend Utils::AbstractMethods
@@ -10,37 +12,12 @@ module MultiGit
     # @return [String]
     attr :oid
 
-    def blob?
-      false
-    end
-
-    def tree?
-      false
-    end
-
-    def commit?
-      false
-    end
-
-    def tag?
-      false
-    end
-
-    def symlink?
-      false
-    end
-
+    # @visibility private
     def hash
       oid.hash
     end
 
-    def eql?(other)
-      if other.respond_to? :oid
-        return oid == other.oid
-      end
-      return false
-    end
-
+    # @visibility private
     def ==(other)
       if other.respond_to? :oid
         return oid == other.oid
@@ -48,6 +25,9 @@ module MultiGit
       return false
     end
 
+    alias eql? ==
+
+    # @visibility private
     def inspect
       ['#<', self.class.name,' ', oid, '>'].join
     end
