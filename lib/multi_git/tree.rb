@@ -10,10 +10,6 @@ module MultiGit
 
       include Enumerable
 
-      def tree?
-        true
-      end
-
       def type
         :tree
       end

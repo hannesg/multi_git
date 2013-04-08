@@ -48,7 +48,7 @@ module MultiGit::RuggedBackend
         end
       rescue Rugged::RepositoryError, Rugged::OSError
         if options[:init]
-          @git = Rugged::Repository.init_at(path, options[:bare])
+          @git = Rugged::Repository.init_at(path, !!options[:bare])
         else
           raise MultiGit::Error::NotARepository, path
         end

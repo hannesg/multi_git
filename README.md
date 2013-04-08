@@ -9,6 +9,7 @@ multi\_git provides access to git repositories in ruby.
 Usage
 --------------------
 
+    # Now open it:
     repo = MultiGit.open('my_repo', init: true)
 
 Backends

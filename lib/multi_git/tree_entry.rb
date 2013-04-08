@@ -25,11 +25,11 @@ module MultiGit
       super(*args, &block)
     end
 
-    # @param [MultiGit::Object]
+    # @param [MultiGit::Object] parent
     # @return [MultiGit::TreeEntry]
-    def with_parent(p)
+    def with_parent(parent)
       dup.instance_eval do
-        @parent = p
+        @parent = parent
         return self
       end
     end

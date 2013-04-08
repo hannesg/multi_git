@@ -21,6 +21,15 @@ module MultiGit
   #
   #   Opens a git repository.
   #
+  #   @example
+  #     # setup:
+  #     dir = `mktemp -d`
+  #     # example:
+  #     MultiGit.open(dir, init: true) #=> be_a MultiGit::Repository
+  #     # teardown:
+  #     `rm -rf #{dir}`
+  #
+  #
   #   @return [Repository]
   #
   #   @see Backend

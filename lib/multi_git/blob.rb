@@ -5,10 +5,6 @@ module MultiGit
   module Blob
 
     module Base
-      def blob?
-        true
-      end
-
       def type
         :blob
       end

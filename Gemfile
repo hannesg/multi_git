@@ -15,3 +15,5 @@ end
 gem 'rugged', '>= 0.17.0.b7', *rugged_opts
 gem 'jbundler', :platform => 'jruby'
 gem 'coveralls'
+gem 'yard'
+
