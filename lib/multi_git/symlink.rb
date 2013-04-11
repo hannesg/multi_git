@@ -5,8 +5,7 @@ module MultiGit
     include TreeEntry
 
     def target
-      rewind
-      @target ||= read
+      content
     end
 
     def resolve

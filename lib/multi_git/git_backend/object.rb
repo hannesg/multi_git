@@ -1,6 +1,6 @@
 require 'multi_git/object'
 require 'forwardable'
-class MultiGit::GitBackend::Object < IO
+class MultiGit::GitBackend::Object
 
   extend Forwardable
 
@@ -12,8 +12,6 @@ class MultiGit::GitBackend::Object < IO
     @oid = oid
     @content = content ? content.dup.freeze : nil
   end
-
-  delegate (IO.public_instance_methods-::Object.public_instance_methods) => 'to_io'
 
   def bytesize
     @size ||= begin
@@ -29,10 +27,8 @@ class MultiGit::GitBackend::Object < IO
     @content ||= @git['cat-file',type.to_s,@oid].freeze
   end
 
-  private :content
-
   def to_io
-    @io ||= StringIO.new(content)
+    StringIO.new(content)
   end
 
 end

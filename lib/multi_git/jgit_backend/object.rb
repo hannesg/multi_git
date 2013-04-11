@@ -1,6 +1,6 @@
 require 'multi_git/object'
 require 'forwardable'
-class MultiGit::JGitBackend::Object < IO
+class MultiGit::JGitBackend::Object
 
   import "org.eclipse.jgit.lib.ObjectId"
 
@@ -16,28 +16,24 @@ class MultiGit::JGitBackend::Object < IO
     @java_object = object
   end
 
-  delegate (IO.public_instance_methods-::Object.public_instance_methods) => 'to_io'
-
   def bytesize
     java_object.getSize
   end
 
-  def rewind
-    java_stream.reset
+  def to_io
+    java_stream.to_io
   end
 
-  def to_io
-    @io ||= java_stream.to_io
+  def content
+    @content ||= to_io.read.freeze
   end
 
 private
 
   def java_stream
-    @java_stream ||= begin
-                       stream = java_object.openStream
-                       stream.mark(bytesize)
-                       stream
-                     end
+    stream = java_object.openStream
+    stream.mark(bytesize)
+    stream
   end
 
 protected

@@ -8,19 +8,32 @@ shared_examples "a MultiGit blob instance" do
     make_blob("Use all the git!").should be_a(MultiGit::Blob)
   end
 
-  it "is recognized as an IO" do
-    make_blob("Use all the git!").should be_a(IO)
-  end
   it "is readeable" do
-    make_blob("Use all the git!").read.should be_a(String)
+    make_blob("Use all the git!").content.should be_a(String)
   end
 
-  it "is rewindeable", focus: true do
+  it "has frozen content" do
+    make_blob("Use all the git!").content.should be_frozen
+  end
+
+  it "returns different ios" do
     blob = make_blob("Use all the git!")
-    blob.read.should == "Use all the git!"
-    blob.read.should == ""
-    blob.rewind
-    blob.read.should == "Use all the git!"
+    io1 = blob.to_io
+    io1.read.should == "Use all the git!"
+    io1.read.should == ""
+    io2 = blob.to_io
+    io2.read.should == "Use all the git!"
+    io1.read.should == ""
+  end
+
+  it "returns rewindeable ios" do
+    blob = make_blob("Use all the git!")
+    io = blob.to_io
+    io.read.should == "Use all the git!"
+    io.read.should == ""
+    io.rewind
+    io.read.should == "Use all the git!"
+    io.read.should == ""
   end
 
   it "has the correct size" do
@@ -115,7 +128,7 @@ shared_examples "an empty repository" do
     inserted = repository.write("Blobs", :blob)
     object = repository.read(inserted.oid)
     object.should be_a(MultiGit::Blob)
-    object.read.should == "Blobs"
+    object.content.should == "Blobs"
     object.bytesize.should == 5
     object.oid.should == inserted.oid
   end
