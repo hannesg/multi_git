@@ -1,8 +1,8 @@
 require 'multi_git/tree_entry'
+require 'multi_git/file'
 module MultiGit
 
-  module Executeable
-    include TreeEntry
+  class Executeable < File
 
     def mode
       Utils::MODE_EXECUTEABLE

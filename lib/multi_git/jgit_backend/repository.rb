@@ -3,12 +3,6 @@ require 'multi_git/tree_entry'
 require 'multi_git/jgit_backend/blob'
 require 'multi_git/jgit_backend/tree'
 module MultiGit::JGitBackend
-
-  Executeable = Class.new(Blob){ include MultiGit::Executeable }
-  File = Class.new(Blob){ include MultiGit::File }
-  Symlink = Class.new(Blob){ include MultiGit::Symlink }
-  Directory = Class.new(Tree){ include MultiGit::Directory }
-
   class Repository < MultiGit::Repository
 
     extend Forwardable
@@ -17,13 +11,6 @@ module MultiGit::JGitBackend
     OBJECT_CLASSES = {
       :blob => Blob,
       :tree => Tree
-    }
-
-    ENTRY_CLASSES = {
-      Utils::MODE_EXECUTEABLE => Executeable,
-      Utils::MODE_FILE        => File,
-      Utils::MODE_SYMLINK     => Symlink,
-      Utils::MODE_DIRECTORY   => Directory
     }
 
     # These IDs are magic numbers
@@ -112,16 +99,6 @@ module MultiGit::JGitBackend
       object = use_reader{|rdr| rdr.open(java_oid) }
       type = REVERSE_OBJECT_TYPE_IDS.fetch(object.getType)
       return OBJECT_CLASSES[type].new(self, java_oid, object)
-    end
-
-    # @visibility private
-    # @api private
-    def read_entry(parent = nil, name, mode, oidish)
-      java_oid = parse_java(oidish)
-      object = use_reader{|rdr| rdr.open(java_oid) }
-      type = REVERSE_OBJECT_TYPE_IDS.fetch(object.getType)
-      verify_type_for_mode(type, mode)
-      return ENTRY_CLASSES[mode].new(parent, name, self, java_oid, object)
     end
 
     # @visibility private

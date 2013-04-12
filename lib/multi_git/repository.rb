@@ -102,6 +102,18 @@ public
     end
   end
 
+  EC = {
+    Utils::MODE_EXECUTEABLE => MultiGit::Executeable,
+    Utils::MODE_FILE        => MultiGit::File,
+    Utils::MODE_SYMLINK     => MultiGit::Symlink,
+    Utils::MODE_DIRECTORY   => MultiGit::Directory
+  }
+
+  def read_entry(parent = nil, name, mode, oidish)
+    obj = read(oidish)
+    EC[mode].new(parent, name, obj)
+  end
+
 protected
 
   def initialize_options(path, options)

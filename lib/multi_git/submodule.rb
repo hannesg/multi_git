@@ -1,8 +1,7 @@
 require 'multi_git/tree_entry'
 module MultiGit
 
-  module Submodule
-    include TreeEntry
+  class Submodule < TreeEntry
   end
 
 end

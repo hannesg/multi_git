@@ -1,46 +1,77 @@
 require 'multi_git/utils'
 require 'multi_git/object'
+require 'multi_git/builder'
 module MultiGit
+
+  base = Class.new
 
   # A tree entry is like a {MultiGit::Object} or a {MultiGit::Builder} but it 
   # also has knows it's parent tree.
-  module TreeEntry
+  class TreeEntry < base
 
-    # @return [String]
-    attr :name
-    # @return [MultiGit::Tree::Base]
-    attr :parent
+    Base = superclass
 
-    extend MultiGit::Utils::AbstractMethods
+    class Base
 
-    # @!method mode
-    #   @abstract
-    #   @return [Integer] the git-internal entry mode
-    abstract :mode
+      # @return [String]
+      attr :name
+      # @return [MultiGit::Tree::Base]
+      attr :parent
 
-    # @visibility private
-    def initialize(parent, name, *args, &block)
-      @parent = parent
-      @name = name
-      super(*args, &block)
-    end
+      extend MultiGit::Utils::AbstractMethods
 
-    # @param [MultiGit::Object] parent
-    # @return [MultiGit::TreeEntry]
-    def with_parent(parent)
-      dup.instance_eval do
+      # @!method mode
+      #   @abstract
+      #   @return [Integer] the git-internal entry mode
+      abstract :mode
+
+      # @visibility private
+      def initialize(parent, name, inner)
         @parent = parent
-        return self
+        @name = name
+        @object = inner
       end
+
+      # @param [MultiGit::Object] parent
+      # @return [MultiGit::TreeEntry]
+      def with_parent(parent, name = self.name)
+        self.class.new(parent, name, @object)
+      end
+
     end
 
-    # {include:MultiGit::Builder#>>}
-    # @param (see MultiGit::Builder#>>)
-    # @return [MultiGit::TreeEntry]
-    def >>(repository)
-      result = super
-      return repository.read_entry(parent, name, mode, result.oid)
+    class Builder < Base
+
+      include MultiGit::Builder
+
+      # @return [MultiGit::Builder]
+      attr :object
+
+      # {include:MultiGit::Builder#>>}
+      # @param (see MultiGit::Builder#>>)
+      # @return [MultiGit::TreeEntry]
+      def >>(repository)
+        result = object >> repository
+        return repository.read_entry(parent, name, mode, result.oid)
+      end
+
+      # @visibility private
+      def initialize(parent, name, *args, &block)
+        super( parent, name , make_inner(*args) )
+        instance_eval(&block) if block
+      end
+
     end
+
+    # @return [MultiGit::Object]
+    attr :object
+
+    include MultiGit::Object
+
+    extend Forwardable
+
+    delegate (MultiGit::Object.instance_methods - ::Object.instance_methods) => :object
+
 
   end
 

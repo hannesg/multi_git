@@ -34,7 +34,7 @@ describe MultiGit::Tree::Builder, :tree_builder => true do
   it "can add nested directories with []=" do
     bld = subject.new
     bld['foo/bar'] = "blob"
-    bld['foo']['bar'].should be_a(MultiGit::Blob::Builder)
+    bld['foo']['bar'].should be_a(MultiGit::File::Builder)
   end
 
 end

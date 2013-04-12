@@ -1,5 +1,6 @@
 require 'multi_git/object'
 require 'forwardable'
+require 'multi_git/jgit_backend/rewindeable_io'
 class MultiGit::JGitBackend::Object
 
   import "org.eclipse.jgit.lib.ObjectId"
@@ -21,7 +22,7 @@ class MultiGit::JGitBackend::Object
   end
 
   def to_io
-    java_stream.to_io
+    MultiGit::JGitBackend::RewindeableIO.new( java_stream )
   end
 
   def content

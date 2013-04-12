@@ -2,22 +2,26 @@ require 'multi_git/tree_entry'
 require 'multi_git/blob'
 module MultiGit
 
-  module File
+  class File < TreeEntry
 
     module Base
-      include TreeEntry
-
       def mode
         Utils::MODE_FILE
       end
     end
 
-    class Builder < Blob::Builder
+    class Builder < TreeEntry::Builder
       include Base
 
-      def >>(repo)
-        result = super
-        return repo.read_entry(parent, name, mode, result.oid)
+      def make_inner(*args)
+        if args.any?
+          if args[0].kind_of? Blob::Builder
+            return args[0]
+          elsif args[0].kind_of? Blob
+            return args[0].to_builder
+          end
+        end
+        Blob::Builder.new(*args)
       end
     end
 

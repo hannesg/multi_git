@@ -104,7 +104,7 @@ shared_examples "an empty repository" do
   it "can add a File::Builder" do
     fb = MultiGit::File::Builder.new(nil, "a", "Blobs")
     result = repository.write(fb)
-    result.should be_a(MultiGit::Object)
+    result.should be_a(MultiGit::File)
     result.name.should == 'a'
     result.oid.should ==  'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
   end
@@ -375,6 +375,10 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
 
       it "allows accessing entries with a slash" do
         (tree / 'foo').should be_a(MultiGit::Directory)
+      end
+
+      it "sets the correct parent" do
+        (tree / 'foo').parent.should == tree
       end
 
       it "allows accessing nested entries with a slash" do

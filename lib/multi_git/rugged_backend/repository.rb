@@ -3,12 +3,12 @@ require 'multi_git/repository'
 require 'multi_git/rugged_backend/blob'
 require 'multi_git/rugged_backend/tree'
 module MultiGit::RuggedBackend
-
+=begin
   Executeable = Class.new(Blob){ include MultiGit::Executeable }
   File = Class.new(Blob){ include MultiGit::File }
   Symlink = Class.new(Blob){ include MultiGit::Symlink }
   Directory = Class.new(Tree){ include MultiGit::Directory }
-
+=end
   class Repository < MultiGit::Repository
 
     extend Forwardable
@@ -19,12 +19,6 @@ module MultiGit::RuggedBackend
       :tree => Tree
     }
 
-    ENTRY_CLASSES = {
-      Utils::MODE_EXECUTEABLE => Executeable,
-      Utils::MODE_FILE        => File,
-      Utils::MODE_SYMLINK     => Symlink,
-      Utils::MODE_DIRECTORY   => Directory
-    }
   public
 
     # {include:MultiGit::Repository#bare?}
@@ -93,7 +87,7 @@ module MultiGit::RuggedBackend
       object = @git.lookup(oid)
       return OBJECT_CLASSES[object.type].new(self, oid, object)
     end
-
+=begin
     # @api private
     # @visibility private
     def read_entry(parent = nil, name, mode, oidish)
@@ -102,7 +96,7 @@ module MultiGit::RuggedBackend
       verify_type_for_mode(object.type, mode)
       return ENTRY_CLASSES[mode].new(parent, name, self, oid, object)
     end
-
+=end
     # {include:MultiGit::Repository#parse}
     # @param (see MultiGit::Repository#parse)
     # @raise (see MultiGit::Repository#parse)
