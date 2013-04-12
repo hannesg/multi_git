@@ -88,14 +88,7 @@ module MultiGit::GitBackend
       type = @git['cat-file',:t, oid]
       return OBJECT_CLASSES[type.to_sym].new(self, oid)
     end
-=begin
-    def read_entry(parent = nil, name, mode, oidish)
-      oid = parse(oidish)
-      type = @git['cat-file',:t, oid]
-      verify_type_for_mode(type.to_sym, mode)
-      return ENTRY_CLASSES[mode].new(parent, name, self, oid)
-    end
-=end
+
     # {include:MultiGit::Repository#parse}
     # @param (see MultiGit::Repository#parse)
     # @raise (see MultiGit::Repository#parse)
