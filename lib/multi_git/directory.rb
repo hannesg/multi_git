@@ -14,6 +14,15 @@ module MultiGit
         !@parent.nil?
       end
 
+      def size
+        object.size
+      end
+
+      def entry(key)
+        e = object.entry(key)
+        e.with_parent(self) if e
+      end
+
     end
 
     class Builder < TreeEntry::Builder
