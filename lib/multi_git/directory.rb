@@ -5,59 +5,51 @@ module MultiGit
   class Directory < TreeEntry
 
     module Base
+      include Tree::Base
       def mode
         Utils::MODE_DIRECTORY
       end
+
       def parent?
         !@parent.nil?
       end
+
     end
 
     class Builder < TreeEntry::Builder
-      include Tree::Base
       include Tree::Builder::DSL
       include Base
 
       def make_inner(*args)
         if args.any?
-          if args[0].kind_of? Tree::Builder
+          if args[0].kind_of?(Tree::Builder)
             return args[0]
-          elsif args[0].kind_of? Tree
+          elsif args[0].kind_of?(Directory)
+            return args[0].object.to_builder
+          elsif args[0].kind_of?(Tree)
             return args[0].to_builder
           end
         end
         Tree::Builder.new(*args)
       end
 
-      extend Forwardable
-
-      # TODO: lazify & persist!
-      def entries
-        Hash[
-          object.entries.map{|k,v| [k, v.to_builder.with_parent(self) ] }
-        ]
-      end
-
       def entry_set(key, value)
         object.entry_set(key, make_entry(key, value))
       end
 
+      def entries
+        Hash[
+          object.map{|entry| [entry.name, entry.with_parent(self) ] }
+        ]
+      end
+
     end
 
-    include Tree::Base
     include Base
-
-    def to_builder
-      Builder.new(parent, name, self)
-    end
-
-    include MultiGit::Tree
-
-    extend Forwardable
 
     def entries
       @entries ||= Hash[
-        object.entries.map{|k,v| [k, v.with_parent(self) ] }
+        object.map{|entry| [entry.name, entry.with_parent(self) ] }
       ]
     end
 

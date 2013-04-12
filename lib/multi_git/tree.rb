@@ -106,6 +106,11 @@ module MultiGit
         entries.size
       end
 
+      # @return [Array<String>] names of all entries
+      def names
+        entries.keys
+      end
+
     end
 
     include Base

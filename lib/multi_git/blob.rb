@@ -16,13 +16,23 @@ module MultiGit
 
       def initialize(content = nil)
         super()
-        if content.kind_of? String
+        if content.kind_of? Blob
+          self << content.content
+        elsif content.kind_of? String
           self << content
         elsif content.kind_of? IO
           IO.copy_stream(content, self)
         elsif content
           raise ArgumentError
         end
+      end
+
+      def content
+        string
+      end
+
+      def content=(value)
+        self.string = value.dup
       end
 
       def >>(repo)

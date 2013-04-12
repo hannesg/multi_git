@@ -401,6 +401,46 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
 
     end
 
+    describe '#to_builder' do
+
+      it "creates a builder" do
+        tree.to_builder.should be_a(MultiGit::Builder)
+      end
+
+      it "contains all entries from the original tree" do
+        b = tree.to_builder
+        b.size.should == 2
+        b['foo'].should be_a(MultiGit::Directory::Builder)
+        b['bar'].should be_a(MultiGit::File::Builder)
+      end
+
+      it "contains entries with correct parent" do
+        b = tree.to_builder
+        b.each do |e|
+          e.parent.should == b
+        end
+      end
+
+      it "allows deleting keys" do
+        b = tree.to_builder
+        b.delete('bar')
+        b.size.should == 1
+        b.entry('bar').should be_nil
+        new_tree = b >> repository
+        new_tree.oid.should == "d4ab49e21a8683faa04acb23ba7aa3c1840509a0"
+      end
+
+      it "allows deleting nested keys" do
+        b = tree.to_builder
+        b.delete('foo/bar')
+        b['foo'].size.should == 0
+        b.entry('foo/bar').should be_nil
+        new_tree = b >> repository
+        new_tree.oid.should == "907fcde7d35ba60b853b4d78465d2cc36824ec08"
+      end
+
+    end
+
   end
 
   context "with a repository containing a simple symlink", :tree => true, :symlink => true do
@@ -436,6 +476,27 @@ echo "120000 blob $OID\tbar\n100644 blob $OID\tfoo" | env -i git mktree`
       expect{
         tree['bar/foo']
       }.to raise_error(MultiGit::Error::InvalidTraversal)
+    end
+
+    describe '#to_builder' do
+
+      it "gives a builder" do
+        b = tree.to_builder
+        b['bar', follow: false].should be_a(MultiGit::Symlink::Builder)
+      end
+
+      it "gives a builder" do
+        b = tree.to_builder
+        b['bar'].should be_a(MultiGit::File::Builder)
+      end
+
+      it "allows setting the target" do
+        b = tree.to_builder
+        b.file('buz','Zup')
+        b['bar', follow: false].target = "buz"
+        b['bar'].name.should == 'buz'
+      end
+
     end
 
   end

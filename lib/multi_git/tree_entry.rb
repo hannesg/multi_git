@@ -77,6 +77,9 @@ module MultiGit
 
     delegate (MultiGit::Object.instance_methods - ::Object.instance_methods) => :object
 
+    def to_builder
+      self.class::Builder.new(parent, name, object)
+    end
 
   end
 

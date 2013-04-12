@@ -1,3 +1,4 @@
+require 'set'
 require 'multi_git/tree'
 require 'multi_git/builder'
 module MultiGit
@@ -10,14 +11,63 @@ module MultiGit
 
     def initialize(from = nil, &block)
       @entries = {}
+      @from = from
       instance_eval(&block) if block
+    end
+
+    def entry(key)
+      if @from
+        @entries.fetch(key) do
+          e = @from.entry(key)
+          if e
+            @entries[key] = e.to_builder.with_parent(self)
+          end
+        end
+      else
+        @entries[key]
+      end
+    end
+
+    def each
+      return to_enum unless block_given?
+      names.each do |name|
+        yield entry(name)
+      end
+    end
+
+    # TODO: cache
+    def names
+      names = @from ? @from.names.dup : []
+      @entries.each do |k,v|
+        if v
+          unless names.include? k
+            names << k
+          end
+        else
+          names.delete(k)
+        end
+      end
+      return names
+    end
+
+    def size
+      names.size
     end
 
     def >>(repository)
       ent = []
       @entries.each do |name, entry|
-        object = repository.write(entry)
-        ent << [name, object.mode, object.oid]
+        if entry
+          object = repository.write(entry)
+          ent << [name, object.mode, object.oid]
+        end
+      end
+      if @from
+        @from.each do |entry|
+          unless @entries.key? entry.name
+            ent << [entry.name, entry.mode, entry.oid]
+          end
+        end
       end
       return repository.make_tree(ent)
     end
@@ -61,7 +111,9 @@ module MultiGit
         if value.kind_of? Proc
           value = value.call(self, key)
         end
-        if value.kind_of? String
+        if value.nil?
+          return value
+        elsif value.kind_of? String
           return MultiGit::File::Builder.new(self, key, value)
         elsif value.kind_of? MultiGit::Builder
           return value.with_parent(self)
@@ -107,6 +159,14 @@ module MultiGit
         set(name){|parent, name|
           Directory::Builder.new(parent, name, &block)
         }
+      end
+
+      def delete(name)
+        set(name){ nil }
+      end
+
+      def to_builder
+        self
       end
 
     end

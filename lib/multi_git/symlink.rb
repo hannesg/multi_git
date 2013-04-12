@@ -3,13 +3,32 @@ module MultiGit
 
   class Symlink < TreeEntry
 
-    def target
-      object.content
+    module Base
+
+      def target
+        object.content
+      end
+
+      def resolve
+        parent.traverse(target, :follow => :path)
+      end
     end
 
-    def resolve
-      parent.traverse(target, :follow => :path)
+    class Builder < TreeEntry::Builder
+
+      include Base
+
+      def make_inner(inner)
+        inner.to_builder
+      end
+
+      def target=(t)
+        object.content = t
+      end
+
     end
+
+    include Base
 
   end
 

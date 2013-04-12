@@ -26,11 +26,6 @@ module MultiGit
     end
 
     include Base
-
-    def to_builder
-      Builder.new(self)
-    end
-
   end
 
 end
