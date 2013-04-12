@@ -5,11 +5,16 @@ module MultiGit
 
   base = Class.new
 
+  # @!parse
+  #    class TreeEntry < TreeEntry::Base
+  #    end
+  class TreeEntry < base
+    Base = superclass
+  end
+
   # A tree entry is like a {MultiGit::Object} or a {MultiGit::Builder} but it 
   # also has knows it's parent tree.
-  class TreeEntry < base
-
-    Base = superclass
+  class TreeEntry
 
     class Base
 
