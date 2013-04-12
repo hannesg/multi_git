@@ -37,4 +37,11 @@ describe MultiGit::Tree::Builder, :tree_builder => true do
     bld['foo']['bar'].should be_a(MultiGit::File::Builder)
   end
 
+  it "can add links" do
+    bld = subject.new
+    bld['foo'] = 'blob'
+    bld.link('bar', 'foo')
+    bld['bar', follow:false].resolve.should == bld['foo']
+  end
+
 end

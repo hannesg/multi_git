@@ -161,6 +161,12 @@ module MultiGit
         }
       end
 
+      def link(name, target)
+        set(name){|parent, name|
+          Symlink::Builder.new(parent, name, target)
+        }
+      end
+
       def delete(name)
         set(name){ nil }
       end
