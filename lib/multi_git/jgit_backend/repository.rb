@@ -2,6 +2,7 @@ require 'multi_git/repository'
 require 'multi_git/tree_entry'
 require 'multi_git/jgit_backend/blob'
 require 'multi_git/jgit_backend/tree'
+require 'multi_git/jgit_backend/commit'
 module MultiGit::JGitBackend
   class Repository < MultiGit::Repository
 
@@ -10,7 +11,8 @@ module MultiGit::JGitBackend
   private
     OBJECT_CLASSES = {
       :blob => Blob,
-      :tree => Tree
+      :tree => Tree,
+      :commit => Commit
     }
 
     # These IDs are magic numbers

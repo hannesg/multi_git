@@ -2,6 +2,7 @@ require 'multi_git/tree_entry'
 require 'multi_git/repository'
 require 'multi_git/rugged_backend/blob'
 require 'multi_git/rugged_backend/tree'
+require 'multi_git/rugged_backend/commit'
 module MultiGit::RuggedBackend
 
   class Repository < MultiGit::Repository
@@ -11,7 +12,8 @@ module MultiGit::RuggedBackend
   private
     OBJECT_CLASSES = {
       :blob => Blob,
-      :tree => Tree
+      :tree => Tree,
+      :commit => Commit
     }
 
   public
@@ -117,6 +119,13 @@ module MultiGit::RuggedBackend
         builder << { name: name, oid: oid, filemode: mode}
       end
       oid = builder.write(@git)
+      return read(oid)
+    end
+
+    # @api private
+    # @visibility private
+    def make_commit(options)
+      oid = Rugged::Commit.create(@git, options)
       return read(oid)
     end
 

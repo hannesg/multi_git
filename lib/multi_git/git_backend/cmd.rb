@@ -26,7 +26,7 @@ module MultiGit::GitBackend
     end
 
     READ_BLOCK = lambda{|io|
-      io.read.chomp
+      io.read
     }
 
     def call(*args, &block)

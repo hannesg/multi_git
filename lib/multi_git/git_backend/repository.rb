@@ -4,6 +4,7 @@ require 'multi_git/repository'
 require 'multi_git/git_backend/cmd'
 require 'multi_git/git_backend/blob'
 require 'multi_git/git_backend/tree'
+require 'multi_git/git_backend/commit'
 module MultiGit::GitBackend
 
   class Repository < MultiGit::Repository
@@ -17,7 +18,8 @@ module MultiGit::GitBackend
 
     OBJECT_CLASSES = {
       :blob => Blob,
-      :tree => Tree
+      :tree => Tree,
+      :commit => Commit
     }
 
     def bare?
@@ -67,7 +69,7 @@ module MultiGit::GitBackend
         content = content.to_io
       end
       if content.respond_to? :path
-        oid = @git["hash-object",:t, type.to_s,:w,'--', content.path]
+        oid = @git["hash-object",:t, type.to_s,:w,'--', content.path].chomp
       else
         content = content.read if content.respond_to? :read
         @git.call('hash-object',:t,type.to_s, :w, :stdin) do |stdin, stdout|
@@ -85,7 +87,7 @@ module MultiGit::GitBackend
     # @return (see MultiGit::Repository#read)
     def read(oidish)
       oid = parse(oidish)
-      type = @git['cat-file',:t, oid]
+      type = @git['cat-file',:t, oid].chomp
       return OBJECT_CLASSES[type.to_sym].new(self, oid)
     end
 
@@ -95,7 +97,7 @@ module MultiGit::GitBackend
     # @return (see MultiGit::Repository#parse)
     def parse(oidish)
       begin
-        result = @git['rev-parse', :revs_only, :validate, oidish.to_s]
+        result = @git['rev-parse', :revs_only, :validate, oidish.to_s].chomp
         if result == ""
           raise MultiGit::Error::InvalidReference, oidish
         end

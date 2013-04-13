@@ -543,4 +543,27 @@ echo "120000 blob $OID\tfoo" | env -i git mktree`
     end
 
   end
+
+  context "with a repository containing a commit", commit: true do
+
+    before(:each) do
+      `mkdir -p #{tempdir}
+cd #{tempdir}
+env -i git init --bare . > /dev/null
+OID=$(echo -n "foo" | env -i git hash-object -w -t blob --stdin )
+TOID=$(echo "100644 blob $OID\tfoo" | env -i git mktree)
+echo "msg" | env -i GIT_COMMITTER_NAME=multi_git GIT_COMMITTER_EMAIL=info@multi.git GIT_COMMITTER_DATE=2005-04-07T22:13:13 GIT_AUTHOR_NAME=multi_git GIT_AUTHOR_EMAIL=info@multi.git GIT_AUTHOR_DATE=2005-04-07T22:13:13 git commit-tree $TOID`
+    end
+
+    let(:repository){ subject.open(tempdir) }
+
+    it "read the commit" do
+      commit = repository.read('5758b18776a7ff4415cd1546053ca461efafd0dd')
+      commit.parents.should == []
+      commit.tree.should be_a(MultiGit::Tree)
+      commit.message.should == "msg\n"
+    end
+
+
+  end
 end
