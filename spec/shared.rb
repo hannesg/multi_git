@@ -558,11 +558,23 @@ env -i git update-ref HEAD $COID`
 
     let(:repository){ subject.open(tempdir) }
 
-    it "read the commit" do
+    it "reads the commit" do
       commit = repository.read('HEAD')
       commit.parents.should == []
       commit.tree.should be_a(MultiGit::Tree)
       commit.message.should == "msg\n"
+    end
+
+    it "allows building a child commit" do
+      commit = repository.read('HEAD')
+      child = MultiGit::Commit::Builder.new( commit )
+      child.tree['foo'].should be_a(MultiGit::File::Builder)
+      child.parents[0].should == commit
+      child.message = 'foo'
+      child.author = child.committer = MultiGit::Handle.new('multi_git','info@multi.git')
+      child.time = child.commit_time = Time.utc(2010,1,1,12,0,0)
+      nu = child >> repository
+      nu.oid.should == "04cd8dc458e3a6f98cd498b18f905c6a4fd30778"
     end
 
   end

@@ -125,7 +125,22 @@ module MultiGit::RuggedBackend
     # @api private
     # @visibility private
     def make_commit(options)
-      oid = Rugged::Commit.create(@git, options)
+      rugged_options = {
+        tree: options[:tree],
+        message: options[:message],
+        parents: options[:parents],
+        author: {
+          name:  options[:author].name,
+          email: options[:author].email,
+          time:  options[:time]
+        },
+        committer: {
+          name:  options[:committer].name,
+          email: options[:committer].email,
+          time:  options[:commit_time]
+        }
+      }
+      oid = Rugged::Commit.create(@git, rugged_options)
       return read(oid)
     end
 

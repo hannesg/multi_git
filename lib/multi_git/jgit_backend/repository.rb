@@ -120,6 +120,35 @@ module MultiGit::JGitBackend
       end
     end
 
+    # @visibility private
+    # @api private
+    def make_commit(commit)
+      bld = Java::OrgEclipseJgitLib::CommitBuilder.new
+      commit[:parents].each do |p|
+        bld.addParentId(oid_to_java p)
+      end
+      bld.setTreeId(oid_to_java commit[:tree])
+      bld.setMessage(commit[:message])
+      bld.setCommitter(person_ident(commit[:committer], commit[:commit_time]))
+      bld.setAuthor(person_ident(commit[:author], commit[:time]))
+      read( use_inserter{|i| i.insert(bld) } )
+    end
+
+    def oid_to_java(oid)
+      Java::OrgEclipseJgitLib::ObjectId.fromString(oid)
+    end
+
+    def person_ident(handle, time)
+      tj = time.to_java(Java::OrgJodaTime::DateTime)
+      Java::OrgEclipseJgitLib::PersonIdent.new(
+        handle.name,
+        handle.email,
+        tj.toDate,
+        tj.getZone.toTimeZone)
+    end
+
+    private :person_ident, :oid_to_java
+
     # {include:MultiGit::Repository#include?}
     # @param (see MultiGit::Repository#include?)
     # @raise (see MultiGit::Repository#include?)

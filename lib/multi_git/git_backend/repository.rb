@@ -135,5 +135,23 @@ module MultiGit::GitBackend
       end
     end
 
+    # @visibility private
+    # @api private
+    def make_commit(commit)
+      env = {
+        'GIT_AUTHOR_NAME'=>commit[:author].name,
+        'GIT_AUTHOR_EMAIL'=>commit[:author].email,
+        'GIT_AUTHOR_DATE' =>commit[:time].strftime('%s %z'),
+        'GIT_COMMITTER_NAME'=>commit[:committer].name,
+        'GIT_COMMITTER_EMAIL'=>commit[:committer].email,
+        'GIT_COMMITTER_DATE' =>commit[:commit_time].strftime('%s %z')
+      }
+      @git.call_env(env, 'commit-tree', commit[:tree], commit[:parents].map{|p| [:p, p] } ) do |stdin, stdout|
+        stdin << commit[:message]
+        stdin.close
+        return read(stdout.read.chomp)
+      end
+    end
+
   end
 end
