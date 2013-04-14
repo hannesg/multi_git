@@ -13,6 +13,22 @@ module MultiGit
         @parents ||= rugged_object.parent_oids.map{|oid| repository.read(oid) }
       end
 
+      def author
+        MultiGit::Handle.new(rugged_object.author[:name],rugged_object.author[:email])
+      end
+
+      def time
+        rugged_object.author[:time]
+      end
+
+      def committer
+        MultiGit::Handle.new(rugged_object.committer[:name],rugged_object.committer[:email])
+      end
+
+      def commit_time
+        rugged_object.committer[:time]
+      end
+
       def message
         rugged_object.message
       end

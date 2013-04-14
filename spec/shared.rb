@@ -571,9 +571,15 @@ env -i git update-ref HEAD $COID`
       child.tree['foo'].should be_a(MultiGit::File::Builder)
       child.parents[0].should == commit
       child.message = 'foo'
-      child.author = child.committer = MultiGit::Handle.new('multi_git','info@multi.git')
+      handle = child.author = child.committer = MultiGit::Handle.new('multi_git','info@multi.git')
       child.time = child.commit_time = Time.utc(2010,1,1,12,0,0)
       nu = child >> repository
+      puts nu.to_io.read
+      nu.committer.should == handle
+      nu.author.should == handle
+      nu.time.should == Time.utc(2010,1,1,12,0,0)
+      nu.commit_time.should == Time.utc(2010,1,1,12,0,0)
+      nu.message.should == 'foo'
       nu.oid.should == "04cd8dc458e3a6f98cd498b18f905c6a4fd30778"
     end
 

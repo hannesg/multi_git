@@ -19,6 +19,21 @@ module MultiGit
         @message ||= java_commit.full_message.freeze
       end
 
+      def time
+        @time ||= java_commit.author_ident.when
+      end
+
+      def commit_time
+        @time ||= java_commit.committer_ident.when
+      end
+
+      def author
+        @author ||= MultiGit::Handle.new(java_commit.author_ident.name,java_commit.author_ident.email_address)
+      end
+
+      def committer
+        @committer ||= MultiGit::Handle.new(java_commit.committer_ident.name,java_commit.committer_ident.email_address)
+      end
     private
 
       def java_commit
@@ -28,4 +43,3 @@ module MultiGit
     end
   end
 end
-
