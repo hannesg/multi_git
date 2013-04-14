@@ -7,4 +7,4 @@ rvm:
   - jruby-head
 matrix:
   allow_failures:
-    - rmv: jruby-head
+    - rvm: jruby-head
