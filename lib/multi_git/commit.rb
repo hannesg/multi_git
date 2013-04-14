@@ -8,13 +8,20 @@ module MultiGit
     module Base
       extend Utils::AbstractMethods
 
+      # @return String
       abstract :message
+
+      # @return Tree
       abstract :tree
+
+      # @return [Array<Commit>]
       abstract :parents
+
       # @return [Time]
       abstract :time
       # @return [Handle]
       abstract :author
+
       # @return [Time]
       abstract :commit_time
       # @return [Handle]
@@ -25,22 +32,84 @@ module MultiGit
       end
     end
 
+    # A commit builder helps creating new commits by 
+    # providing a simple interface, sane defaults and some
+    # validations.
+    #
+    # You can create a new commit using the commit builder like this:
+    # 
+    # @example Commit an small tree
+    #   #setup:
+    #   dir = `mktemp -d`
+    #   # example:
+    #   builder = MultiGit::Commit::Builder.new
+    #   builder.message = "My first commit"
+    #   builder.by "me@example.com"
+    #   builder.tree["a_file"] = "some content"
+    #   # builder is now ready to be inserted
+    #   repository = MultiGit.open(dir, init: true)
+    #   commit = repository << builder #=> be_a MultiGit::Commit
+    #   commit.tree['a_file'].content  #=> eql "some content"
+    #   # teardown:
+    #   `rm -rf #{dir}`
     class Builder
       include MultiGit::Builder
       include Base
 
+      # @return (see MultiGit::Commit::Base#message)
       attr :message
-      attr :tree
+      #
+      # @yield allows 
+      # @return [Tree::Builder]
+      def tree(&block)
+        @tree.instance_eval(&block) if block
+        @tree
+      end
+      # @return [Array<Commit::Base>]
       attr :parents
 
+      # @return (see MultiGit::Commit::Base#time)
       attr :time
+      # @return (see MultiGit::Commit::Base#commit_time)
       attr :commit_time
 
+      # @return (see MultiGit::Commit::Base#author)
       attr :author
+      # @return (see MultiGit::Commit::Base#committer)
       attr :committer
 
-      attr_writer :author, :committer, :time, :commit_time
+      attr_writer :author, :committer
       attr_writer :message
+
+      # @param time [Time]
+      def time=(time)
+        raise ArgumentError, "Expected a Time, got #{time.inspect}" unless time.kind_of? Time
+        @time = time
+      end
+
+      # @param time [Time]
+      def commit_time=(time)
+        raise ArgumentError, "Expected a Time, got #{time.inspect}" unless time.kind_of? Time
+        @commit_time = time
+      end
+
+      # @param handle [Handle, String]
+      def committer=(handle)
+        @committer = parse_handle(handle)
+      end
+
+      # @param handle [Handle, String]
+      def author=(handle)
+        @author = parse_handle(handle)
+      end
+
+      # DSL method to set author and committer in one step
+      # @param handle [Handle, String]
+      # @return self
+      def by(handle)
+        self.author = self.committer = handle
+        return self
+      end
 
       def initialize(from = nil)
         @parents = []
@@ -51,6 +120,8 @@ module MultiGit
         elsif from.kind_of? Commit
           @tree = from.tree.to_builder
           @parents << from
+        elsif from.nil?
+          @tree = Tree::Builder.new
         end
         @author = nil
         @committer = nil
@@ -70,6 +141,19 @@ module MultiGit
           :message => message,
           :update_ref => []
         )
+      end
+
+    protected
+
+      def parse_handle(handle)
+        case(handle)
+        when Handle then
+          return handle
+        when String then
+          return Handle.parse(handle)
+        else
+          raise ArgumentError, "Expected a String or a Handle, got #{handle.inspect}"
+        end
       end
 
     end

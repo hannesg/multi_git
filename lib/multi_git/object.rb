@@ -38,6 +38,12 @@ module MultiGit
     #   @return [MultiGit::Builder] a builder
     abstract :to_builder
 
+    # @!method content
+    #   @abstract
+    #   Returns an String containing the content of this object.
+    #   @return [String]
+    abstract :content
+
     # @!method to_io
     #   @abstract
     #   Returns an IO with the content of this object.

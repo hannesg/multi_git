@@ -1,5 +1,6 @@
 require 'multi_git/tree_entry'
 require 'multi_git/blob'
+require 'forwardable'
 module MultiGit
 
   class File < TreeEntry
@@ -26,6 +27,9 @@ module MultiGit
     end
 
     include Base
+    extend Forwardable
+
+    delegate (Blob.instance_methods - Object.instance_methods) => :object
   end
 
 end
