@@ -29,12 +29,12 @@ module MultiGit::GitBackend
       io.read
     }
 
-    def call(*args, &block)
+    def call_env(env, *args, &block)
       s = cmd(*args)
       block ||= READ_BLOCK
       result = nil
       message = nil
-      status = popen_foo( s.join(' ') ) do | stdin, stdout, stderr |
+      status = popen_foo(env, s.join(' ')) do | stdin, stdout, stderr |
         if block.arity == 1
           stdin.close
           result = block.call(stdout)
@@ -50,6 +50,10 @@ module MultiGit::GitBackend
       end
     end
 
+    def call(*args, &block)
+      call_env({}, *args, &block)
+    end
+
     alias [] call
 
   private
@@ -57,14 +61,16 @@ module MultiGit::GitBackend
     # @api private
     # 
     # popen3 is broken in jruby, popen4 is not available in mri :(
-    def popen_foo(*args)
+    def popen_foo(env={}, cmd)
       if IO.respond_to? :popen4
-        IO.popen4(*args) do |_pid, *yield_args|
+        # setting the env is broken in jruby
+        args = ['env -i', escape_opts(env), cmd]
+        IO.popen4(args.join(' ')) do |_pid, *yield_args|
           yield *yield_args
         end
         return $?
       else
-        Open3.popen3(*args) do |*yield_args,_thr|
+        Open3.popen3(env, cmd,:unsetenv_others => true ) do |*yield_args,_thr|
           yield *yield_args
           return _thr.value
         end

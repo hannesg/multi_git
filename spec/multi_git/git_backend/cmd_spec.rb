@@ -37,4 +37,12 @@ describe MultiGit::GitBackend::Cmd, cmd: true do
     }.to yield_with_args(IO)
   end
 
+  it "emtpies the env" do
+    Cmd.new('/usr/bin/env').call.should == ""
+  end
+
+  it "set env variables" do
+    Cmd.new('/usr/bin/env').call_env({'FOO'=>'BAR'}).should == "FOO=BAR\n"
+  end
+
 end
