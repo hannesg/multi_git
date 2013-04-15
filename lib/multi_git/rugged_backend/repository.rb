@@ -3,6 +3,7 @@ require 'multi_git/repository'
 require 'multi_git/rugged_backend/blob'
 require 'multi_git/rugged_backend/tree'
 require 'multi_git/rugged_backend/commit'
+require 'multi_git/rugged_backend/ref'
 module MultiGit::RuggedBackend
 
   class Repository < MultiGit::Repository
@@ -83,6 +84,10 @@ module MultiGit::RuggedBackend
       oid = parse(ref)
       object = @git.lookup(oid)
       return OBJECT_CLASSES[object.type].new(self, oid, object)
+    end
+
+    def ref(ref)
+      Ref.new(self, ref, Rugged::Reference.lookup(self, ref) )
     end
 
     # {include:MultiGit::Repository#parse}
