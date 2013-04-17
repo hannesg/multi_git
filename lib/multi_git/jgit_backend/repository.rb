@@ -3,6 +3,7 @@ require 'multi_git/tree_entry'
 require 'multi_git/jgit_backend/blob'
 require 'multi_git/jgit_backend/tree'
 require 'multi_git/jgit_backend/commit'
+require 'multi_git/jgit_backend/ref'
 module MultiGit::JGitBackend
   class Repository < MultiGit::Repository
 
@@ -101,6 +102,10 @@ module MultiGit::JGitBackend
       object = use_reader{|rdr| rdr.open(java_oid) }
       type = REVERSE_OBJECT_TYPE_IDS.fetch(object.getType)
       return OBJECT_CLASSES[type].new(self, java_oid, object)
+    end
+
+    def ref(name)
+      Ref.new(self, name)
     end
 
     # @visibility private

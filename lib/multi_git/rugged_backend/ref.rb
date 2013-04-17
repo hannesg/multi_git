@@ -8,7 +8,11 @@ module MultiGit
       include MultiGit::Ref
 
       def target
-        rugged_ref.target
+        @target ||= repository.read(rugged_ref.target)
+      end
+
+      def canonic_name
+        rugged_ref.name
       end
 
       def exists?
@@ -30,7 +34,7 @@ module MultiGit
       def rugged_ref
         return @rugged_ref if @rugged_loaded
         @rugged_loaded = true
-        return @rugged_ref = Rugged::Reference.lookup(repository, name)
+        return @rugged_ref = repository.__backend__.refs(name).first
       end
 
     end

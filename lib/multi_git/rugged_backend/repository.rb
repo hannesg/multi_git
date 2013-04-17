@@ -87,7 +87,7 @@ module MultiGit::RuggedBackend
     end
 
     def ref(ref)
-      Ref.new(self, ref, Rugged::Reference.lookup(self, ref) )
+      Ref.new(self, ref)
     end
 
     # {include:MultiGit::Repository#parse}

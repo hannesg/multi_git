@@ -5,6 +5,7 @@ require 'multi_git/git_backend/cmd'
 require 'multi_git/git_backend/blob'
 require 'multi_git/git_backend/tree'
 require 'multi_git/git_backend/commit'
+require 'multi_git/git_backend/ref'
 module MultiGit::GitBackend
 
   class Repository < MultiGit::Repository
@@ -118,6 +119,10 @@ module MultiGit::GitBackend
       rescue Cmd::Error::ExitCode1
         return false
       end
+    end
+
+    def ref(name)
+      MultiGit::GitBackend::Ref.new(self, name)
     end
 
     # @visibility private

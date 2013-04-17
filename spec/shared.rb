@@ -553,20 +553,20 @@ env -i git init --bare . > /dev/null
 OID=$(echo -n "foo" | env -i git hash-object -w -t blob --stdin )
 TOID=$(echo "100644 blob $OID\tfoo" | env -i git mktree)
 COID=$(echo "msg" | env -i GIT_COMMITTER_NAME=multi_git GIT_COMMITTER_EMAIL=info@multi.git 'GIT_COMMITTER_DATE=2005-04-07T22:13:13 +0200' GIT_AUTHOR_NAME=multi_git GIT_AUTHOR_EMAIL=info@multi.git 'GIT_AUTHOR_DATE=2005-04-07T22:13:13 +0200' git commit-tree $TOID)
-env -i git update-ref HEAD $COID`
+env -i git update-ref refs/heads/master $COID`
     end
 
     let(:repository){ subject.open(tempdir) }
 
     it "reads the commit" do
-      commit = repository.read('HEAD')
+      commit = repository.read('master')
       commit.parents.should == []
       commit.tree.should be_a(MultiGit::Tree)
       commit.message.should == "msg\n"
     end
 
     it "allows building a child commit" do
-      commit = repository.read('HEAD')
+      commit = repository.read('master')
       child = MultiGit::Commit::Builder.new( commit )
       child.tree['foo'].should be_a(MultiGit::File::Builder)
       child.parents[0].should == commit
@@ -580,6 +580,13 @@ env -i git update-ref HEAD $COID`
       nu.commit_time.should == Time.utc(2010,1,1,12,0,0)
       nu.message.should == 'foo'
       nu.oid.should == "04cd8dc458e3a6f98cd498b18f905c6a4fd30778"
+    end
+
+    it "handles refs" do
+      head = repository.ref('master')
+      head.target.should == repository.read('master')
+      head.canonic_name.should == 'refs/heads/master'
+      head.should_not be_symbolic
     end
 
   end
