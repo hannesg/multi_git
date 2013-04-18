@@ -586,7 +586,15 @@ env -i git update-ref refs/heads/master $COID`
       head = repository.ref('master')
       head.target.should == repository.read('master')
       head.canonic_name.should == 'refs/heads/master'
+      head.should be_exists
       head.should_not be_symbolic
+    end
+
+    it "handles non-existing refs" do
+      head = repository.ref('refs/heads/foo')
+      head.target.should be_nil
+      head.should_not be_exists
+      head.canonic_name.should == 'refs/heads/foo'
     end
 
   end

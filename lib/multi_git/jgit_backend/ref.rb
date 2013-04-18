@@ -6,6 +6,7 @@ module MultiGit
       include MultiGit::Ref
 
       def target
+        return nil unless java_ref
         @target = begin
                     if java_ref.symbolic?
                     else
@@ -15,13 +16,15 @@ module MultiGit
       end
 
       def canonic_name
-        java_ref.getName
+        java_ref ? java_ref.getName : name
       end
 
     private
 
       def java_ref
-        @java_ref ||= repository.__backend__.getRef(name)
+        return @java_ref if @read
+        @read = true
+        @java_ref = repository.__backend__.getRef(name)
       end
 
     end

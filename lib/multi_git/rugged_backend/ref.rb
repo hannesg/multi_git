@@ -8,20 +8,15 @@ module MultiGit
       include MultiGit::Ref
 
       def target
-        @target ||= repository.read(rugged_ref.target)
+        @target ||= rugged_ref && repository.read(rugged_ref.target)
       end
 
       def canonic_name
-        rugged_ref.name
-      end
-
-      def exists?
-        rugged_ref
-      end
-
-      def reload!
-        @rugged_loaded = false
-        return true
+        if rugged_ref
+          rugged_ref.name
+        else
+          name
+        end
       end
 
       def update(mode = :optimistic)

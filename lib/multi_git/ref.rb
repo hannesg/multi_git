@@ -38,13 +38,16 @@ module MultiGit
     #   @param new [MultiGit::Ref, MultiGit::Object, nil ]
     abstract :update!
 
-
     # @!method canonic_name
     #   @return [String]
     abstract :canonic_name
 
     def symbolic?
       target.kind_of?(Ref)
+    end
+
+    def exists?
+      !target.nil?
     end
 
     # @!method update( mode = 
