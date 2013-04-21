@@ -1,6 +1,8 @@
 require 'multi_git/backend'
 module MultiGit
 
+  # @visibility private
+  # @api private
   class BackendSet
 
     def initialize
