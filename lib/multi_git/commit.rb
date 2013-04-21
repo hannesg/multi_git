@@ -57,7 +57,15 @@ module MultiGit
       include Base
 
       # @return (see MultiGit::Commit::Base#message)
-      attr :message
+      def message(*args)
+        if args.any?
+          self.message = args.first
+          return self
+        else
+          return @message
+        end
+      end
+
       #
       # @yield allows 
       # @return [Tree::Builder]
@@ -111,7 +119,12 @@ module MultiGit
         return self
       end
 
-      def initialize(from = nil)
+      def at(time)
+        self.time = self.commit_time = time
+        return self
+      end
+
+      def initialize(from = nil, &block)
         @parents = []
         if from.kind_of? Tree
           @tree = from.to_builder
@@ -126,6 +139,7 @@ module MultiGit
         @author = nil
         @committer = nil
         @time = @commit_time = Time.now
+        instance_eval(&block) if block
       end
 
       def >>(repo)

@@ -19,11 +19,6 @@ module MultiGit
         end
       end
 
-      def update(mode = :optimistic)
-        oid = rugged_ref.target
-
-      end
-
     private
 
       def rugged_ref

@@ -1,7 +1,102 @@
 require 'multi_git/utils'
+require 'fileutils'
 module MultiGit
 
   module Ref
+
+    class Updater
+
+      attr :target
+
+      def repository
+        @ref.repository
+      end
+
+      def name
+        @ref.canonic_name
+      end
+
+      def initialize(ref)
+        @ref = ref
+        @target = ref.target
+      end
+
+      def update(new)
+        nx = case new
+             when nil then new
+             else repository.write(new)
+             end
+        @target = nx
+        return nx
+      end
+
+      def destroy!
+      end
+    end
+
+    class PessimisticFileUpdater < Updater
+
+      def initialize(*_)
+        super
+        @file = ::File.open(::File.join(repository.git_dir, name),::File::RDWR | ::File::EXCL)
+        @file.sync = true
+        content = @file.read.chomp
+        @target = case content
+                  when ''       then nil
+                  when /\Aref:/ then repository.ref($`)
+                                else repository.read(content)
+                  end
+      end
+
+      def update(new)
+        nx = super
+        str = object_to_ref_str(nx)
+        @file.rewind
+        @file.puts(str)
+        return nx
+      end
+
+      def destroy!
+        @file.close
+      end
+
+    private
+      def object_to_ref_str(object)
+        case(object)
+        when nil              then ''
+        when MultiGit::Object then object.oid
+        when Ref              then "ref:#{object.canonic_name}"
+        end
+      end
+    end
+
+    class OptimisticFileUpdater < Updater
+
+      def update(new)
+        file = ::File.open(::File.join(repository.git_dir, name),::File::RDWR | ::File::EXCL)
+        file.sync = true
+        content = file.read.chomp
+        if content != object_to_ref_str(target)
+          raise Error::ConcurrentRefUpdate
+        end
+        nx = super
+        str = object_to_ref_str(nx)
+        file.rewind
+        file.puts(str)
+        return nx
+      end
+
+    private
+      def object_to_ref_str(object)
+        case(object)
+        when nil              then ''
+        when MultiGit::Object then object.oid
+        when Ref              then "ref:#{object.canonic_name}"
+        end
+      end
+    end
+
+
 
     extend MultiGit::Utils::AbstractMethods
 
@@ -24,20 +119,6 @@ module MultiGit
     #   @return [MultiGit::Ref, MultiGit::Object, nil]
     abstract :target
 
-    # @!method lock!( mode = :pessimistic )
-    #   @param mode [:pessimistic, :optimistic]
-    #   @return [Boolean]
-    abstract :lock!
-
-    # @!method unlock!
-    #   @return [Boolean]
-    abstract :unlock!
-
-
-    # @!method update!( new )
-    #   @param new [MultiGit::Ref, MultiGit::Object, nil ]
-    abstract :update!
-
     # @!method canonic_name
     #   @return [String]
     abstract :canonic_name
@@ -50,15 +131,31 @@ module MultiGit
       !target.nil?
     end
 
-    # @!method update( mode = 
-    #   @yield [MulitGit::Ref, MultiGit::Object, 
-    def update
+    # @!method update( mode = :optimistic )
+    #   @param mode [:optimistic, :pessimistic]
+    #   @yield [MultiGit::Ref, MultiGit::Object, nil]
+    #   @return [MultiGit::Ref, MultiGit::Object, nil]
+    def update( mode = :optimistic )
+      updater_class = case mode
+                when :optimistic  then optimistic_updater
+                when :pessimistic then pessimistic_updater
+                end
       begin
-        lock!
-        update!( yield target )
+        updater = updater_class.new(self)
+        updater.update( yield(updater.target) )
       ensure
-        unlock!
+        updater.destroy! if updater
       end
+    end
+
+  private
+
+    def optimistic_updater
+      OptimisticFileUpdater
+    end
+
+    def pessimistic_updater
+      PessimisticFileUpdater
     end
 
   end

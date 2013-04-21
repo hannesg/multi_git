@@ -52,6 +52,10 @@ module MultiGit
       include Error
     end
 
+    class ConcurrentRefUpdate < Exception
+      include Error
+    end
+
   end
 
 end

@@ -558,6 +558,14 @@ env -i git update-ref refs/heads/master $COID`
 
     let(:repository){ subject.open(tempdir) }
 
+    def update_master
+      `cd #{tempdir}
+OID=$(echo -n "foo" | env -i git hash-object -w -t blob --stdin )
+TOID=$(echo "100644 blob $OID\tfoo" | env -i git mktree)
+COID=$(echo "msg" | env -i GIT_COMMITTER_NAME=multi_git GIT_COMMITTER_EMAIL=info@multi.git GIT_AUTHOR_NAME=multi_git GIT_AUTHOR_EMAIL=info@multi.git git commit-tree $TOID)
+env -i git update-ref refs/heads/master $COID`
+    end
+
     it "reads the commit" do
       commit = repository.read('master')
       commit.parents.should == []
@@ -595,6 +603,47 @@ env -i git update-ref refs/heads/master $COID`
       head.target.should be_nil
       head.should_not be_exists
       head.canonic_name.should == 'refs/heads/foo'
+    end
+
+    it "can lock refs optimistic" do
+      head = repository.ref('master')
+      head.update do |target|
+        MultiGit::Commit::Builder.new(target) do
+          message "foo"
+          by 'info@multi.git'
+          tree['foo'] = 'bar'
+          at Time.utc(2012,1,1,12,0,0)
+        end
+      end
+      repository.ref('master').target.oid.should == 'a00f6588c95cf264fb946480494c418371105a26'
+    end
+
+    it "can lock refs pessimistic" do
+      head = repository.ref('master')
+      head.update(:pessimistic) do |target|
+        MultiGit::Commit::Builder.new(target) do
+          message "foo"
+          by 'info@multi.git'
+          tree['foo'] = 'bar'
+          at Time.utc(2012,1,1,12,0,0)
+        end
+      end
+      repository.ref('refs/heads/master').target.oid.should == 'a00f6588c95cf264fb946480494c418371105a26'
+    end
+
+    it "barfs when a ref gets updated during optimistic update" do
+      head = repository.ref('master')
+      expect{
+        head.update do |target|
+          update_master
+          MultiGit::Commit::Builder.new(target) do
+            message "foo"
+            by 'info@multi.git'
+            tree['foo'] = 'bar'
+            at Time.utc(2012,1,1,12,0,0)
+          end
+        end
+      }.to raise_error(MultiGit::Error::ConcurrentRefUpdate)
     end
 
   end
