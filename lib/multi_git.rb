@@ -1,4 +1,5 @@
 require 'forwardable'
+require 'multi_git/version'
 require 'multi_git/backend'
 require 'multi_git/backend_set'
 require 'multi_git/error'

@@ -188,10 +188,32 @@ module MultiGit
       !target.nil?
     end
 
-    # @!method update( mode = :optimistic )
-    #   @param mode [:optimistic, :pessimistic]
-    #   @yield [MultiGit::Ref, MultiGit::Object, nil]
-    #   @return [MultiGit::Ref, MultiGit::Object, nil]
+    # Updates the target of this ref
+    #
+    # @param mode [:optimistic, :pessimistic]
+    # @yield [current_target] Yields the current target and expects the block to return the new target
+    # @yieldparam current_target [MultiGit::Ref, MultiGit::Object, nil] current target
+    # @yieldreturn [MultiGit::Ref, MultiGit::Object, nil] new target
+    # @return [MultiGit::Ref, MultiGit::Object, nil]
+    #
+    # @example
+    #  # setup:
+    #  dir = `mktemp -d`
+    #  repository = MultiGit.open(dir, init: true)
+    #  # insert a commit:
+    #  builder = MultiGit::Commit::Builder.new
+    #  builder.tree['a_file'] = 'some_content'
+    #  commit = repository.write(builder)
+    #  # update the ref:
+    #  ref = repository.ref('refs/heads/master') #=> be_a MultiGit::Ref
+    #  ref.update do |current_target|
+    #    current_target #=> be_nil
+    #    commit
+    #  end
+    #  # check result:
+    #  repository.ref('refs/heads/master').target #=> eql commit
+    #  # teardown:
+    #  `rm -rf #{dir}`
     def update( mode = :optimistic )
       updater_class = case mode
                 when :optimistic  then optimistic_updater
@@ -203,6 +225,10 @@ module MultiGit
       ensure
         updater.destroy! if updater
       end
+    end
+
+    def delete
+      update{ nil }
     end
 
   private

@@ -59,7 +59,7 @@ public
   # @!method parse(ref)
   #   Resolves a reference into an oid.
   #   @abstract
-  #   @param [String] ref
+  #   @param [String] rev
   #   @raise [MultiGit::Error::InvalidReference] if ref is not a valid reference
   #   @raise [MultiGit::Error::AmbiguousReference] if ref refers to multiple objects
   #   @raise [MultiGit::Error::BadRevisionSyntax] if ref does not contain a valid ref-syntax
@@ -83,6 +83,14 @@ public
   #   @return [MultiGit::Object] the resulting object
   abstract :write
 
+  # @!method ref(name)
+  #   Opens a reference.
+  #   @abstract
+  #   @param [String] name
+  #   @return [MultiGit::Ref] ref
+  abstract :ref
+
+
   # @!parse alias_method :[], :read
   def [](*args,&block)
     read(*args,&block)
@@ -102,6 +110,7 @@ public
     end
   end
 
+  # @visibility private
   EC = {
     Utils::MODE_EXECUTEABLE => MultiGit::Executeable,
     Utils::MODE_FILE        => MultiGit::File,
@@ -109,11 +118,11 @@ public
     Utils::MODE_DIRECTORY   => MultiGit::Directory
   }
 
+  # @visibility private
   def read_entry(parent = nil, name, mode, oidish)
     obj = read(oidish)
     EC[mode].new(parent, name, obj)
   end
-
 protected
 
   def initialize_options(path, options)

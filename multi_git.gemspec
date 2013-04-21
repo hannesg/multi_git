@@ -1,6 +1,7 @@
+require File.join(File.dirname(__FILE__), 'lib', 'multi_git', 'version')
 Gem::Specification.new do |gem|
   gem.name    = 'multi_git'
-  gem.version = '0.0.1.alpha1'
+  gem.version = MultiGit::VERSION
   gem.date    = Time.now.strftime("%Y-%m-%d")
 
   gem.summary = "Use all the gits"

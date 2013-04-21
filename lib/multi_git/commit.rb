@@ -145,14 +145,16 @@ module MultiGit
       def >>(repo)
         new_tree = repo << tree
         new_parents = parents.map{|p| repo.write(p).oid }
+        c = committer || author    || Handle::DEFAULT
+        a = author    || committer || Handle::DEFAULT
         return repo.make_commit(
           :time => time,
-          :author => author,
+          :author => a,
           :commit_time => commit_time,
-          :committer => committer,
+          :committer => c,
           :parents => new_parents,
           :tree => new_tree.oid,
-          :message => message,
+          :message => message || "Thank you for using multi_git",
           :update_ref => []
         )
       end
