@@ -26,11 +26,9 @@ module MultiGit
 
       private
 
-        NON_EXISTING_TARGET = '0'*40
-
         def target_to_str(target)
           case(target)
-          when nil              then NON_EXISTING_TARGET
+          when nil              then Utils::NULL_OID
           when MultiGit::Object then target.oid
           when MultiGit::Ref    then 'ref:'+target.name
           else raise ArgumentError

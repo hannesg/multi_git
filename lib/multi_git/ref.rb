@@ -34,69 +34,126 @@ module MultiGit
       end
     end
 
-    class PessimisticFileUpdater < Updater
+    class FileUpdater < Updater
+
+    protected
+
+      def open_file(exists)
+        mode = ::File::WRONLY | ::File::TRUNC
+        if !exists
+          begin
+            return ::File.open(file_path, mode | ::File::CREAT)
+          rescue Errno::EEXIST
+            raise Error::ConcurrentRefUpdate
+          end
+        else
+          begin
+            return ::File.open(file_path, mode)
+          rescue Errno::ENOENT
+            raise Error::ConcurrentRefUpdate
+          end
+        end
+      end
+
+      def object_to_ref_str(object)
+        case(object)
+        when nil              then ''
+        when MultiGit::Object then object.oid
+        when Ref              then "ref:#{object.canonic_name}"
+        end
+      end
+
+      def file_path
+        ::File.join(repository.git_dir, name)
+      end
+
+      def lock_file_path
+        ::File.join(repository.git_dir, name + '.lock')
+      end
+
+      def acquire_lock
+        ::File.open(lock_file_path, ::File::CREAT | ::File::RDWR | ::File::EXCL )
+      end
+
+      def release_lock(lock)
+        ::File.unlink(lock.path)
+        lock.flock(::File::LOCK_UN)
+      end
+
+    end
+
+    class PessimisticFileUpdater < FileUpdater
 
       def initialize(*_)
         super
-        @file = ::File.open(::File.join(repository.git_dir, name),::File::RDWR | ::File::EXCL)
-        @file.sync = true
-        content = @file.read.chomp
-        @target = case content
-                  when ''       then nil
-                  when /\Aref:/ then repository.ref($`)
-                                else repository.read(content)
-                  end
+        @lock = acquire_lock
+        # safe now
+        @ref = @ref.reload
       end
 
       def update(new)
+        old = target
         nx = super
-        str = object_to_ref_str(nx)
-        @file.rewind
-        @file.puts(str)
+        if nx
+          str = object_to_ref_str(nx)
+          begin
+            file = open_file(!old.nil?)
+            file.puts(str)
+            file.flush
+          ensure
+            file.close if file
+          end
+        else
+          ::File.unlink(file_path)
+        end
         return nx
       end
 
       def destroy!
-        @file.close
+        release_lock(@lock)
       end
 
-    private
-      def object_to_ref_str(object)
-        case(object)
-        when nil              then ''
-        when MultiGit::Object then object.oid
-        when Ref              then "ref:#{object.canonic_name}"
-        end
-      end
     end
 
-    class OptimisticFileUpdater < Updater
+    class OptimisticFileUpdater < FileUpdater
 
       def update(new)
-        file = ::File.open(::File.join(repository.git_dir, name),::File::RDWR | ::File::EXCL)
-        file.sync = true
-        content = file.read.chomp
-        if content != object_to_ref_str(target)
-          raise Error::ConcurrentRefUpdate
+        begin
+          lock = acquire_lock
+          if ::File.exists?(file_path)
+            content = ::File.read(file_path).chomp
+            if content != object_to_ref_str(target)
+              raise Error::ConcurrentRefUpdate
+            end
+          elsif !target.nil?
+            raise Error::ConcurrentRefUpdate
+          end
+          old = target
+          nx = super
+          if nx.nil?
+            if !old
+              return nx
+            end
+            ::File.unlink(file_path)
+          else
+            begin
+              file = open_file( !old.nil? )
+              str = object_to_ref_str(nx)
+              file.puts( str )
+              file.flush
+            ensure
+              file.close if file
+            end
+          end
+          return nx
+        ensure
+          release_lock( lock )
         end
-        nx = super
-        str = object_to_ref_str(nx)
-        file.rewind
-        file.puts(str)
-        return nx
       end
 
     private
-      def object_to_ref_str(object)
-        case(object)
-        when nil              then ''
-        when MultiGit::Object then object.oid
-        when Ref              then "ref:#{object.canonic_name}"
-        end
-      end
+
     end
-
-
 
     extend MultiGit::Utils::AbstractMethods
 

@@ -563,7 +563,16 @@ env -i git update-ref refs/heads/master $COID`
 OID=$(echo -n "foo" | env -i git hash-object -w -t blob --stdin )
 TOID=$(echo "100644 blob $OID\tfoo" | env -i git mktree)
 COID=$(echo "msg" | env -i GIT_COMMITTER_NAME=multi_git GIT_COMMITTER_EMAIL=info@multi.git GIT_AUTHOR_NAME=multi_git GIT_AUTHOR_EMAIL=info@multi.git git commit-tree $TOID)
-env -i git update-ref refs/heads/master $COID`
+env -i git update-ref refs/heads/master $COID 2>&1`
+    end
+
+    def commit_builder(*args)
+      MultiGit::Commit::Builder.new(*args) do
+        message "foo"
+        by 'info@multi.git'
+        tree['foo'] = 'bar'
+        at Time.utc(2012,1,1,12,0,0)
+      end
     end
 
     it "reads the commit" do
@@ -605,15 +614,28 @@ env -i git update-ref refs/heads/master $COID`
       head.canonic_name.should == 'refs/heads/foo'
     end
 
+    it "creates non-existing refs" do
+      head = repository.ref('refs/heads/foo')
+      head.update do |target|
+        target.should be_nil
+        commit_builder target
+      end
+      head.reload.target.oid.should == '553bfb16f88e60e71f527f91433aa7282066a332'
+    end
+
+    it "creates non-existing refs pessimstically" do
+      head = repository.ref('refs/heads/foo')
+      head.update(:pessimistic) do |target|
+        target.should be_nil
+        commit_builder target
+      end
+      head.reload.target.oid.should == '553bfb16f88e60e71f527f91433aa7282066a332'
+    end
+
     it "can lock refs optimistic" do
       head = repository.ref('master')
       head.update do |target|
-        MultiGit::Commit::Builder.new(target) do
-          message "foo"
-          by 'info@multi.git'
-          tree['foo'] = 'bar'
-          at Time.utc(2012,1,1,12,0,0)
-        end
+        commit_builder target
       end
       repository.ref('master').target.oid.should == 'a00f6588c95cf264fb946480494c418371105a26'
     end
@@ -621,12 +643,7 @@ env -i git update-ref refs/heads/master $COID`
     it "can lock refs pessimistic" do
       head = repository.ref('master')
       head.update(:pessimistic) do |target|
-        MultiGit::Commit::Builder.new(target) do
-          message "foo"
-          by 'info@multi.git'
-          tree['foo'] = 'bar'
-          at Time.utc(2012,1,1,12,0,0)
-        end
+        commit_builder target
       end
       repository.ref('refs/heads/master').target.oid.should == 'a00f6588c95cf264fb946480494c418371105a26'
     end
@@ -636,14 +653,34 @@ env -i git update-ref refs/heads/master $COID`
       expect{
         head.update do |target|
           update_master
-          MultiGit::Commit::Builder.new(target) do
-            message "foo"
-            by 'info@multi.git'
-            tree['foo'] = 'bar'
-            at Time.utc(2012,1,1,12,0,0)
-          end
+          commit_builder target
         end
       }.to raise_error(MultiGit::Error::ConcurrentRefUpdate)
+    end
+
+    it "lets others barf when a ref gets updated during pessimistic update" do
+      head = repository.ref('master')
+      head.update(:pessimistic) do |target|
+        update_master.should =~ /fatal: Unable to create '.+\.lock': File exists./
+        $?.exitstatus.should == 128
+        commit_builder target
+      end
+    end
+
+    it "delete refs optimistic" do
+      head = repository.ref('master')
+      head.update do |target|
+        nil
+      end
+      repository.ref('refs/heads/master').target.should be_nil
+    end
+
+    it "can lock refs pessimistic" do
+      head = repository.ref('master')
+      head.update(:pessimistic) do |target|
+        nil
+      end
+      repository.ref('refs/heads/master').target.should be_nil
     end
 
   end

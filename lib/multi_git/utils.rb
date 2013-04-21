@@ -13,6 +13,8 @@ RUBY
 
     end
 
+    NULL_OID = '0'*40
+
     MODE_SYMLINK =     0120000
     MODE_SUBMODULE =   0160000
     MODE_DIRECTORY =   0040000

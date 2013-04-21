@@ -6,7 +6,7 @@ module MultiGit
       include MultiGit::Ref
 
       class Java::OrgEclipseJgitStorageFile::RefDirectoryUpdate
-        public :tryLock, :unlock, :doUpdate
+        public :tryLock, :unlock, :doUpdate, :doDelete
       end
 
       class Updater < MultiGit::Ref::Updater
@@ -19,7 +19,7 @@ module MultiGit
         def do_update(ru, nx)
           case nx
           when nil then
-            ru.delete
+            ru.doDelete(RefUpdate::Result::FORCED)
           when MultiGit::Object then
             ru.new_object_id = ObjectId.fromString(nx.oid)
             ru.doUpdate(RefUpdate::Result::FORCED)
@@ -38,7 +38,9 @@ module MultiGit
               raise
             end
             old_id = ObjectId.toString(ru.old_object_id)
-            if old_id != target.oid
+            if target.nil?
+              raise Error::ConcurrentRefUpdate if old_id != Utils::NULL_OID
+            elsif old_id != target.oid
               raise Error::ConcurrentRefUpdate
             end
             nx = super
