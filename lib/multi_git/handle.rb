@@ -8,8 +8,12 @@ module MultiGit
   public
 
     # Parses a handle from a string
+    # 
+    # Currently two formats are recognized. Either just a mail address 
+    # (e.g. 'user@example.com') or user + mail address in brackets ( e.g. 
+    # 'User <user@example.com>' ).
     #
-    # @param [String]
+    # @param string [String] a string containing a handle.
     # @return [Handle]
     #
     # @example

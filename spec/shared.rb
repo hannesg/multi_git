@@ -576,10 +576,16 @@ env -i git update-ref refs/heads/master $COID 2>&1`
     end
 
     it "reads the commit" do
-      commit = repository.read('master')
+      commit = repository.read('refs/heads/master')
       commit.parents.should == []
       commit.tree.should be_a(MultiGit::Tree)
       commit.message.should == "msg\n"
+    end
+
+    it "forwards certain methods to the tree" do
+      commit = repository.read('master')
+      commit['foo'].should be_a(MultiGit::File)
+      (commit / 'foo' ).should be_a(MultiGit::File)
     end
 
     it "allows building a child commit" do
@@ -600,9 +606,9 @@ env -i git update-ref refs/heads/master $COID 2>&1`
     end
 
     it "handles refs" do
-      head = repository.ref('master')
-      head.target.should == repository.read('master')
-      head.canonic_name.should == 'refs/heads/master'
+      head = repository.ref('refs/heads/master')
+      head.target.should == repository.read('refs/heads/master')
+      head.name.should == 'refs/heads/master'
       head.should be_exists
       head.should_not be_symbolic
     end
@@ -611,7 +617,7 @@ env -i git update-ref refs/heads/master $COID 2>&1`
       head = repository.ref('refs/heads/foo')
       head.target.should be_nil
       head.should_not be_exists
-      head.canonic_name.should == 'refs/heads/foo'
+      head.name.should == 'refs/heads/foo'
     end
 
     it "creates non-existing refs" do
@@ -633,15 +639,15 @@ env -i git update-ref refs/heads/master $COID 2>&1`
     end
 
     it "can lock refs optimistic" do
-      head = repository.ref('master')
+      head = repository.ref('refs/heads/master')
       head.update do |target|
         commit_builder target
       end
-      repository.ref('master').target.oid.should == 'a00f6588c95cf264fb946480494c418371105a26'
+      repository.ref('refs/heads/master').target.oid.should == 'a00f6588c95cf264fb946480494c418371105a26'
     end
 
     it "can lock refs pessimistic" do
-      head = repository.ref('master')
+      head = repository.ref('refs/heads/master')
       head.update(:pessimistic) do |target|
         commit_builder target
       end
@@ -649,7 +655,7 @@ env -i git update-ref refs/heads/master $COID 2>&1`
     end
 
     it "barfs when a ref gets updated during optimistic update" do
-      head = repository.ref('master')
+      head = repository.ref('refs/heads/master')
       expect{
         head.update do |target|
           update_master
@@ -659,7 +665,7 @@ env -i git update-ref refs/heads/master $COID 2>&1`
     end
 
     it "lets others barf when a ref gets updated during pessimistic update" do
-      head = repository.ref('master')
+      head = repository.ref('refs/heads/master')
       head.update(:pessimistic) do |target|
         update_master.should =~ /fatal: Unable to create '.+\.lock': File exists./
         $?.exitstatus.should == 128
@@ -668,7 +674,7 @@ env -i git update-ref refs/heads/master $COID 2>&1`
     end
 
     it "delete refs optimistic" do
-      head = repository.ref('master')
+      head = repository.ref('refs/heads/master')
       head.update do |target|
         nil
       end
@@ -676,11 +682,37 @@ env -i git update-ref refs/heads/master $COID 2>&1`
     end
 
     it "can lock refs pessimistic" do
-      head = repository.ref('master')
+      head = repository.ref('refs/heads/master')
       head.update(:pessimistic) do |target|
         nil
       end
       repository.ref('refs/heads/master').target.should be_nil
+    end
+
+    it "can use the commit dsl" do
+      master = repository.branch('master')
+      master = master.commit do
+        tree['bar'] = 'baz'
+      end
+      master['bar'].content.should == 'baz'
+    end
+
+    it "can set symbolic refs" do
+      head = repository.ref('HEAD')
+      master = repository.ref('refs/heads/master')
+      r = head.update do
+        master
+      end
+      r.target.should == master
+    end
+
+    it "can set symbolic refs pessimistic" do
+      head = repository.ref('HEAD')
+      master = repository.ref('refs/heads/master')
+      r = head.update(:pessimistic) do
+        master
+      end
+      r.target.should == master
     end
 
   end

@@ -104,6 +104,10 @@ module MultiGit::JGitBackend
       return OBJECT_CLASSES[type].new(self, java_oid, object)
     end
 
+    # {include:MultiGit::Repository#ref}
+    # @param (see MultiGit::Repository#ref)
+    # @raise (see MultiGit::Repository#ref)
+    # @return (see MultiGit::Repository#ref)
     def ref(name)
       Ref.new(self, name)
     end

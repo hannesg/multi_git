@@ -1,3 +1,4 @@
+require 'forwardable'
 require 'multi_git/utils'
 require 'multi_git/handle'
 require 'multi_git/builder'
@@ -7,6 +8,7 @@ module MultiGit
 
     module Base
       extend Utils::AbstractMethods
+      extend Forwardable
 
       # @return String
       abstract :message
@@ -26,6 +28,8 @@ module MultiGit
       abstract :commit_time
       # @return [Handle]
       abstract :committer
+
+      delegate [:[], :/] => :tree
 
       def type
         :commit

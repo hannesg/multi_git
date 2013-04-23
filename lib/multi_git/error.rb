@@ -54,6 +54,12 @@ module MultiGit
 
     class ConcurrentRefUpdate < Exception
       include Error
+
+      def initialize
+        super 'Another process has updated the ref you are currently updating.
+This is unlikely to be a problem, no data got lost. You may simply retry the update.
+If this happens frequently, you may have want to run "git gc" to remove clobber.'
+      end
     end
 
   end

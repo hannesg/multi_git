@@ -90,10 +90,21 @@ public
   #   @return [MultiGit::Ref] ref
   abstract :ref
 
+  def branch(name)
+    if name.include? '/'
+      ref('refs/remotes/'+name)
+    else
+      ref('refs/heads/'+name)
+    end
+  end
 
-  # @!parse alias_method :[], :read
-  def [](*args,&block)
-    read(*args,&block)
+  def tag(name)
+    ref('refs/tags/'+name)
+  end
+
+  # @!parse alias_method :[], :ref
+  def [](name)
+    ref(name)
   end
 
   # @!parse alias_method :<<, :write
