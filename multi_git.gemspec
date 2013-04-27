@@ -4,11 +4,13 @@ Gem::Specification.new do |gem|
   gem.version = MultiGit::VERSION
   gem.date    = Time.now.strftime("%Y-%m-%d")
 
-  gem.summary = "Use all the gits"
+  gem.summary = "Use all the git"
+
+  gem.description = 'multi_git is aimed to be the best git interface for ruby'
 
   gem.authors  = ['Hannes Georg']
   gem.email    = 'hannes.georg@googlemail.com'
-  gem.homepage = 'https://github.com/hannesg/ridley-git'
+  gem.homepage = 'https://github.com/hannesg/multi_git'
 
   # ensure the gem is built out of versioned files
   gem.files = Dir['lib/**/*'] & `git ls-files -z`.split("\0")
