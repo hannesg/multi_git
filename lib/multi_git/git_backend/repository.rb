@@ -121,7 +121,12 @@ module MultiGit::GitBackend
       end
     end
 
+    # {include:MultiGit::Repository#ref}
+    # @param (see MultiGit::Repository#ref)
+    # @raise (see MultiGit::Repository#ref)
+    # @return (see MultiGit::Repository#ref)
     def ref(name)
+      validate_ref_name(name)
       MultiGit::GitBackend::Ref.new(self, name)
     end
 

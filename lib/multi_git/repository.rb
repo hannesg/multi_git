@@ -84,12 +84,27 @@ public
   abstract :write
 
   # @!method ref(name)
-  #   Opens a reference.
+  #   Opens a reference. A reference is usually known as branch or tag.
+  #
+  #   @example
+  #     # setup:
+  #     dir = `mktemp -d`
+  #     # example:
+  #     repo = MultiGit.open(dir, init: true) #=> be_a MultiGit::Repository
+  #     master_branch = repo.ref('refs/heads/master')
+  #     head = repo.ref('HEAD')
+  #     # teardown:
+  #     `rm -rf #{dir}`
+  #
   #   @abstract
   #   @param [String] name
   #   @return [MultiGit::Ref] ref
   abstract :ref
 
+  # Opens a branch
+  #
+  # @param name [String] branch name
+  # @return [Ref]
   def branch(name)
     if name.include? '/'
       ref('refs/remotes/'+name)
@@ -98,6 +113,11 @@ public
     end
   end
 
+
+  # Opens a tag
+  #
+  # @param name [String] tag name
+  # @return [Ref]
   def tag(name)
     ref('refs/tags/'+name)
   end
@@ -180,6 +200,14 @@ protected
     expected = Utils.type_from_mode(mode)
     unless type == expected
       raise Error::WrongTypeForMode.new(expected, type)
+    end
+  end
+
+  VALID_REF = %r{\Arefs/heads/\w+|refs/tags/\w+|refs/remotes/\w+/\w+|[A-Z0-9_]+}
+
+  def validate_ref_name(name)
+    unless VALID_REF =~ name
+      raise Error::InvalidReferenceName, name
     end
   end
 

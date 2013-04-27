@@ -109,6 +109,7 @@ module MultiGit::JGitBackend
     # @raise (see MultiGit::Repository#ref)
     # @return (see MultiGit::Repository#ref)
     def ref(name)
+      validate_ref_name(name)
       Ref.new(self, name)
     end
 

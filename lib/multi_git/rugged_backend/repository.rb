@@ -86,8 +86,13 @@ module MultiGit::RuggedBackend
       return OBJECT_CLASSES[object.type].new(self, oid, object)
     end
 
-    def ref(ref)
-      Ref.new(self, ref)
+    # {include:MultiGit::Repository#ref}
+    # @param (see MultiGit::Repository#ref)
+    # @raise (see MultiGit::Repository#ref)
+    # @return (see MultiGit::Repository#ref)
+    def ref(name)
+      validate_ref_name(name)
+      Ref.new(self, name)
     end
 
     # {include:MultiGit::Repository#parse}

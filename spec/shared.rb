@@ -613,6 +613,12 @@ env -i git update-ref refs/heads/master $COID 2>&1`
       head.should_not be_symbolic
     end
 
+    it "refuses wrong refs" do
+      expect{
+        repository.ref('master')
+      }.to raise_error(MultiGit::Error::InvalidReferenceName)
+    end
+
     it "handles non-existing refs" do
       head = repository.ref('refs/heads/foo')
       head.target.should be_nil

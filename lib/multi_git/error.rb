@@ -36,6 +36,10 @@ module MultiGit
     class BadRevisionSyntax < InvalidReference
     end
 
+    class InvalidReferenceName < ArgumentError
+      include Error
+    end
+
     class WrongTypeForMode < Exception
       include Error
 
