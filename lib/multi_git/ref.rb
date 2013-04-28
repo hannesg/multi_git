@@ -77,6 +77,10 @@ module MultiGit
 
     protected
 
+      def ensure_dir!
+        FileUtils.mkdir_p(::File.dirname(file_path))
+      end
+
       def open_file(exists)
         mode = ::File::WRONLY | ::File::TRUNC
         if !exists
@@ -126,6 +130,7 @@ module MultiGit
 
       def initialize(*_)
         super
+        ensure_dir!
         @lock = acquire_lock
         # safe now
         @ref = @ref.reload
@@ -159,6 +164,7 @@ module MultiGit
     class OptimisticFileUpdater < FileUpdater
 
       def update(new)
+        ensure_dir!
         begin
           lock = acquire_lock
           if ::File.exists?(file_path)
@@ -188,7 +194,7 @@ module MultiGit
           end
           return nx
         ensure
-          release_lock( lock )
+          release_lock( lock ) if lock
         end
       end
 

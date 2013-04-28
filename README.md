@@ -79,7 +79,7 @@ TODO ( loosely by priority )
 
 - Correctnes: handle symbolic refs gracefuly
 - Feature: Config
-- Feature: list branches/tags
+- Feature: list tags
 - Feature: Ref#update(:reckless)
 - Efficiency: efficient Ref#resolve+update
 - Feature: Remotes/Clone/Push/Fetch ( blocked by config )

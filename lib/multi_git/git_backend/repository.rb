@@ -130,6 +130,29 @@ module MultiGit::GitBackend
       MultiGit::GitBackend::Ref.new(self, name)
     end
 
+  private
+    TRUE_LAMBDA = proc{ true }
+  public 
+
+    def each_branch(filter = :all)
+      return to_enum(:each_branch, filter) unless block_given?
+      which = case filter
+              when :all, Regexp then [:a]
+              when :local       then []
+              when :remote      then [:r]
+              end
+      post_filter = TRUE_LAMBDA
+      if filter.kind_of? Regexp
+        post_filter = filter
+      end
+      @git['branch', *which].each_line do |line|
+        name = line[2..-2]
+        next unless post_filter === name
+        yield branch(name)
+      end
+      return self
+    end
+
     # @visibility private
     MKTREE_FORMAT = "%06o %s %s\t%s\n"
 

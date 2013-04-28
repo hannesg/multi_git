@@ -26,6 +26,7 @@ module MultiGit::JGitBackend
     }
 
     REVERSE_OBJECT_TYPE_IDS = Hash[ OBJECT_TYPE_IDS.map{|k,v| [v,k]} ]
+
   public
 
     delegate "bare?" => "@git"
@@ -111,6 +112,33 @@ module MultiGit::JGitBackend
     def ref(name)
       validate_ref_name(name)
       Ref.new(self, name)
+    end
+
+  private
+    ALL_FILTER = %r{\Arefs/(?:heads|remotes)}
+    LOCAL_FILTER = %r{\Arefs/heads}
+    REMOTE_FILTER = %r{\Arefs/remotes}
+  public
+
+    def each_branch(filter = :all)
+      return to_enum(:each_branch, filter) unless block_given?
+      prefix = case filter
+           when :all, Regexp then 'refs/'
+           when :local       then Java::OrgEclipseJgitLib::Constants::R_HEADS
+           when :remote      then Java::OrgEclipseJgitLib::Constants::R_REMOTES
+           end
+      refs = @git.ref_database.get_refs(prefix)
+      if filter.kind_of? Regexp
+        refs.each do |name, ref|
+          next unless filter === name[(name.index('/')+1)..-1]
+          yield Ref.new(self, ref)
+        end
+      else
+        refs.each do |name, ref|
+          yield Ref.new(self, ref)
+        end
+      end
+      return self
     end
 
     # @visibility private

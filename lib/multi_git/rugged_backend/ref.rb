@@ -7,9 +7,16 @@ module MultiGit
 
       include MultiGit::Ref
 
+      # @api private
       def initialize(repository, name)
+        if name.kind_of? Rugged::Reference
+          ref = name
+          name = ref.name
+        else
+          ref = Rugged::Reference.lookup(repository.__backend__, name)
+        end
         super(repository, name)
-        @rugged_ref = Rugged::Reference.lookup(repository.__backend__, name)
+        @rugged_ref = ref
       end
 
       def target

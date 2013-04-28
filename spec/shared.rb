@@ -722,4 +722,45 @@ env -i git update-ref refs/heads/master $COID 2>&1`
     end
 
   end
+
+  context "#each_branch" do
+
+    before(:each) do
+      `mkdir -p #{tempdir}`
+      build = MultiGit::Commit::Builder.new do
+        tree['foo'] = 'bar'
+      end
+      commit = repository << build
+      repository.branch('master').update{ commit }
+      repository.branch('foo').update{ commit }
+      repository.branch('origin/bar').update{ commit }
+    end
+
+    let(:repository){ subject.open(tempdir, init: true) }
+
+    it "lists all branches" do
+      expect{|yld|
+        repository.each_branch(&yld)
+      }.to yield_successive_args(MultiGit::Ref,MultiGit::Ref,MultiGit::Ref)
+    end
+
+    it "filters by regexp" do
+      expect{|yld|
+        repository.each_branch(/\Afoo\z/, &yld)
+      }.to yield_successive_args(MultiGit::Ref)
+    end
+
+    it "lists local branches" do
+      expect{|yld|
+        repository.each_branch(:local, &yld)
+      }.to yield_successive_args(MultiGit::Ref,MultiGit::Ref)
+    end
+
+    it "lists remote branches" do
+      expect{|yld|
+        repository.each_branch(:remote, &yld)
+      }.to yield_successive_args(MultiGit::Ref)
+    end
+
+  end
 end

@@ -113,7 +113,6 @@ public
     end
   end
 
-
   # Opens a tag
   #
   # @param name [String] tag name
@@ -121,6 +120,18 @@ public
   def tag(name)
     ref('refs/tags/'+name)
   end
+
+  # @method each_branch( filter = :all )
+  #   Yields either all, local or remote branches. If called 
+  #   with a regular expression it will be used to filter the 
+  #   branches by name.
+  #
+  #   @param filter [:all, :local, :remote, Regexp]
+  #   @yield branch
+  #   @yieldparam branch [Ref]
+  #   @return [Enumerable<Ref>] if called without block
+  #
+  abstract :each_branch
 
   # @!parse alias_method :[], :ref
   def [](name)

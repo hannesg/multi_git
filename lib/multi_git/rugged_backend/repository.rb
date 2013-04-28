@@ -115,6 +115,25 @@ module MultiGit::RuggedBackend
       @git.include?(oid)
     end
 
+    TRUE_LAMBDA = proc{ true }
+
+    def each_branch(filter = :all)
+      return to_enum(:each_branch, filter) unless block_given?
+      rugged_filter = nil
+      if filter == :local || filter == :remote
+        rugged_filter = filter
+      end
+      post_filter = TRUE_LAMBDA
+      if filter.kind_of? Regexp
+        post_filter = filter
+      end
+      Rugged::Branch.each(@git, rugged_filter) do |ref|
+        next unless post_filter === ref.name
+        yield Ref.new(self, ref)
+      end
+      return self
+    end
+
     # @api private
     # @visibility private
     def __backend__

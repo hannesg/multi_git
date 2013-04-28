@@ -83,9 +83,16 @@ module MultiGit
         end
       end
 
+      # @visibility private
       def initialize(repository, name)
+        if name.kind_of? Java::OrgEclipseJgitLib::Ref
+          ref = name
+          name = ref.name
+        else
+          ref = repository.__backend__.getRef(name)
+        end
         super(repository, name)
-        @java_ref = repository.__backend__.getRef(name)
+        @java_ref = ref
       end
 
       def target
