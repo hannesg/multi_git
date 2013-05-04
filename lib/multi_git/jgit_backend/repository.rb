@@ -141,6 +141,15 @@ module MultiGit::JGitBackend
       return self
     end
 
+    def each_tag
+      return to_enum(:each_branch, filter) unless block_given?
+      refs = @git.ref_database.get_refs('refs/tags')
+      refs.each do |name, ref|
+        yield Ref.new(self, ref)
+      end
+      return self
+    end
+
     # @visibility private
     # @api private
     def make_tree(entries)

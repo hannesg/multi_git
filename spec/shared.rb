@@ -441,6 +441,16 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
 
     end
 
+    describe "#glob", :glob => true do
+
+      it "globs" do
+        expect{|yld|
+          tree.glob('f*', &yld)
+        }.to yield_successive_args(MultiGit::File)
+      end
+
+    end
+
   end
 
   context "with a repository containing a simple symlink", :tree => true, :symlink => true do
@@ -760,6 +770,29 @@ env -i git update-ref refs/heads/master $COID 2>&1`
       expect{|yld|
         repository.each_branch(:remote, &yld)
       }.to yield_successive_args(MultiGit::Ref)
+    end
+
+  end
+
+
+  context '#each_tag', tag: true do
+
+    before(:each) do
+      `mkdir -p #{tempdir}`
+      build = MultiGit::Commit::Builder.new do
+        tree['foo'] = 'bar'
+      end
+      commit = repository << build
+      repository.tag('master').update{ commit }
+      repository.tag('foo').update{ commit }
+    end
+
+    let(:repository){ subject.open(tempdir, init: true) }
+
+    it "lists all tags" do
+      expect{|yld|
+        repository.each_tag(&yld)
+      }.to yield_successive_args(MultiGit::Ref,MultiGit::Ref)
     end
 
   end

@@ -153,6 +153,14 @@ module MultiGit::GitBackend
       return self
     end
 
+    def each_tag
+      return to_enum(:each_tag) unless block_given?
+      @git['tag'].each_line do |line|
+        yield tag(line.chomp)
+      end
+      return self
+    end
+
     # @visibility private
     MKTREE_FORMAT = "%06o %s %s\t%s\n"
 

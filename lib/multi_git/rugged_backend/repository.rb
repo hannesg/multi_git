@@ -134,6 +134,14 @@ module MultiGit::RuggedBackend
       return self
     end
 
+    def each_tag
+      return to_enum(:each_branch, filter) unless block_given?
+      Rugged::Tag.each(@git) do |name|
+        yield tag(name)
+      end
+      return self
+    end
+
     # @api private
     # @visibility private
     def __backend__

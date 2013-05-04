@@ -133,6 +133,16 @@ public
   #
   abstract :each_branch
 
+
+  # @method each_tag
+  #   Yields all tags.
+  #
+  #   @yield tag
+  #   @yieldparam tag [Ref]
+  #   @return [Enumerable<Ref>] if called without block
+  #
+  abstract :each_tag
+
   # @!parse alias_method :[], :ref
   def [](name)
     ref(name)
