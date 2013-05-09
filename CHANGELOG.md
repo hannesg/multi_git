@@ -1,3 +1,8 @@
+# 0.0.1.beta1
+
+* [ENHANCEMENT] Tree#glob now supports DOTMATCH
+* [BUG] Removed Tree#path ( did not made much sense since the path is not known )
+
 # 0.0.1.alpha2
 
 * [FEATURE] Tree#glob ( works like directory globbing )

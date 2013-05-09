@@ -48,7 +48,7 @@ module MultiGit
 
       def path
         @path ||= begin
-                    if parent && parent.path != ''
+                    if parent.respond_to? :path
                       [parent.path,SLASH, name].join
                     else
                       name

@@ -475,6 +475,14 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
 
     describe "#glob", :glob => true do
 
+      it "finds the toplevel directory with dotmatch" do
+        expect{|yld|
+          tree.glob('*', File::FNM_DOTMATCH, &yld)
+        }.to yield_successive_args(tree,
+                                   Something[class: MultiGit::File, path: 'bar'],
+                                   Something[class: MultiGit::Directory, path: 'foo'] )
+      end
+
       it "finds the directory but not it's children" do
         expect{|yld|
           tree.glob('f*', &yld)

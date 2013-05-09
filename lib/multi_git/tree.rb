@@ -94,14 +94,37 @@ module MultiGit
       alias / traverse
       alias [] traverse
 
+      # Works like the builtin Dir.glob
+      #
+      # @param pattern [String] A glob pattern
+      # @param flags [Integer] glob flags
+      # @yield [MultiGit::TreeEntry]
+      # @return [Enumerator] if called without a block
+      # @return self if called with a block
+      #
+      # @example
+      #   bld = MultiGit::Tree::Builder.new do
+      #     file "file"
+      #     directory "folder" do
+      #       file "file"
+      #     end
+      #   end
+      #   bld.glob( '**/file' ).map(&:path) #=> eq ['file','folder/file']
+      #
+      # @see http://ruby-doc.org/core/Dir.html#method-c-glob
       def glob( pattern, flags = 0 )
         return to_enum(:glob, pattern, flags) unless block_given?
-        l = path.size
+        l = respond_to?(:path) ? path.size : 0
         flags |= ::File::FNM_PATHNAME
-        walk_pre do |object|
-          if ::File.fnmatch(pattern, object.path[l..-1], flags)
-            yield object
-            false
+        if ::File.fnmatch(pattern, '.', flags)
+          yield self
+        end
+        each do |entry|
+          entry.walk_pre do |sub_entry|
+            if ::File.fnmatch(pattern, sub_entry.path[l..-1], flags)
+              yield sub_entry
+              false
+            end
           end
         end
         return self
@@ -159,10 +182,6 @@ module MultiGit
     # @visibility private
     def inspect
       ['#<',self.class.name,' ',oid,' repository:', repository.inspect,'>'].join
-    end
-
-    def path
-      ''
     end
 
   protected
