@@ -1,6 +1,9 @@
 require 'set'
 require 'multi_git/tree'
 require 'multi_git/builder'
+require 'multi_git/file'
+require 'multi_git/executeable'
+require 'multi_git/symlink'
 module MultiGit
   class Tree::Builder
 
@@ -75,6 +78,7 @@ module MultiGit
     module DSL
 
       def set(key, *args, &block)
+        options = {}
         case(args.size)
         when 0
           raise ArgumentError, "Expected a value or a block" unless block
@@ -98,7 +102,7 @@ module MultiGit
         if parts.any?{|p| p == ".." }
           raise MultiGit::Error::InvalidTraversal, "Traversal to parent directories is currently not supported while setting."
         end
-        return traverse_set( self, parts, value, true)
+        return traverse_set( self, parts, value, options.fetch(:create,true))
       end
 
       alias []= set
@@ -142,7 +146,11 @@ module MultiGit
           elsif create == :overwrite || ( entry.nil? && create )
             entry = MultiGit::Directory::Builder.new(current, part)
           else
-            raise MultiGit::Error::InvalidTraversal, "Can't traverse to #{path} from #{self.inspect}: #{current.inspect} doesn't contain an entry named #{part.inspect}" unless entry
+            if entry.nil?
+              raise MultiGit::Error::InvalidTraversal, "#{current.inspect} doesn't contain an entry named #{part.inspect}"
+            else
+              raise MultiGit::Error::InvalidTraversal, "#{current.inspect} does contain an entry named #{part.inspect} but it's not a directory. To overwrite files specify create: :overwrite."
+            end
           end
         end
         current.entry_set(part, traverse_set(entry, rest, value, create))

@@ -1,4 +1,5 @@
 require 'multi_git/object'
+require 'multi_git/walkable'
 require 'forwardable'
 module MultiGit
   module Tree
@@ -9,6 +10,7 @@ module MultiGit
     module Base
 
       include Enumerable
+      include Walkable
 
       def type
         :tree
@@ -92,6 +94,19 @@ module MultiGit
       alias / traverse
       alias [] traverse
 
+      def glob( pattern, flags = 0 )
+        return to_enum(:glob, pattern, flags) unless block_given?
+        l = path.size
+        flags |= ::File::FNM_PATHNAME
+        walk_pre do |object|
+          if ::File.fnmatch(pattern, object.path[l..-1], flags)
+            yield object
+            false
+          end
+        end
+        return self
+      end
+
       # @yield [MultiGit::TreeEntry]
       def each
         return to_enum unless block_given?
@@ -99,6 +114,27 @@ module MultiGit
           yield entry
         end
         return self
+      end
+
+      # @visibility private
+      def walk_pre(&block)
+        each do |child|
+          child.walk(:pre, &block)
+        end
+      end
+
+      # @visibility private
+      def walk_post(&block)
+        each do |child|
+          child.walk(:post, &block)
+        end
+      end
+
+      # @visibility private
+      def walk_leaves(&block)
+        each do |child|
+          child.walk(:leaves,&block)
+        end
       end
 
       # @return [Integer] number of entries
@@ -123,6 +159,10 @@ module MultiGit
     # @visibility private
     def inspect
       ['#<',self.class.name,' ',oid,' repository:', repository.inspect,'>'].join
+    end
+
+    def path
+      ''
     end
 
   protected

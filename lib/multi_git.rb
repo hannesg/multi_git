@@ -13,6 +13,8 @@ private
   BACKENDS[:rugged, priority: 1] = RuggedBackend
   BACKENDS[  :jgit, priority: 2] = JGitBackend
 
+  SLASH = '/'.freeze
+
 public
 
   extend SingleForwardable

@@ -13,6 +13,29 @@ end
 
 Bundler.require(:default, :development)
 
+class Something
+
+  def initialize(matchers)
+    @matchers = matchers
+  end
+
+  def ===(other)
+    @matchers.all? do |k,v|
+      o = other.send(k)
+      v === o || v == o
+    end
+  end
+
+  def inspect
+    ['#<something ',@matchers.map{|k,v| k.to_s+'=>'+v.inspect}.join(' '),'>'].join
+  end
+
+  class << self
+    alias [] new
+  end
+
+end
+
 require 'shared'
 
 # Smart thing

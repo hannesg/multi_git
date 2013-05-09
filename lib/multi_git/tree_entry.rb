@@ -1,6 +1,7 @@
 require 'multi_git/utils'
 require 'multi_git/object'
 require 'multi_git/builder'
+require 'multi_git/walkable'
 module MultiGit
 
   base = Class.new
@@ -8,15 +9,17 @@ module MultiGit
   # @!parse
   #    class TreeEntry < TreeEntry::Base
   #    end
-  class TreeEntry < base
-    Base = superclass
-  end
+  TreeEntry = Class.new(base)
 
   # A tree entry is like a {MultiGit::Object} or a {MultiGit::Builder} but it 
   # also has knows it's parent tree.
   class TreeEntry
 
+    Base = superclass
+
     class Base
+
+      include Walkable
 
       # @return [String]
       attr :name
@@ -41,6 +44,16 @@ module MultiGit
       # @return [MultiGit::TreeEntry]
       def with_parent(parent, name = self.name)
         self.class.new(parent, name, @object)
+      end
+
+      def path
+        @path ||= begin
+                    if parent && parent.path != ''
+                      [parent.path,SLASH, name].join
+                    else
+                      name
+                    end
+                  end
       end
 
     end
@@ -80,6 +93,11 @@ module MultiGit
     def to_builder
       self.class::Builder.new(parent, name, object)
     end
+
+    def inspect
+      ['#<', self.class.name,' ',path,' ', oid, '>'].join
+    end
+
 
   end
 

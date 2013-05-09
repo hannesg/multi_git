@@ -1,5 +1,6 @@
 coverage/*
 doc
+doc/*
 .jbundler/*
 .rbx
 .jrubyrc

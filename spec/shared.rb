@@ -441,14 +441,52 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
 
     end
 
-    describe "#glob", :glob => true do
+    describe '#walk', :walk => true do
 
-      it "globs" do
+      it "walks in pre-order" do
         expect{|yld|
-          tree.glob('f*', &yld)
-        }.to yield_successive_args(MultiGit::File)
+          tree.walk(&yld)
+        }.to yield_successive_args(
+                          Something[class: MultiGit::File, path: 'bar'],
+                          Something[class: MultiGit::Directory, path: 'foo'],
+                          Something[class: MultiGit::File, path: 'foo/bar']
+                                  )
       end
 
+      it "walks in post-order" do
+        expect{|yld|
+          tree.walk(:post, &yld)
+        }.to yield_successive_args(
+                          Something[class: MultiGit::File, path: 'bar'],
+                          Something[class: MultiGit::File, path: 'foo/bar'],
+                          Something[class: MultiGit::Directory, path: 'foo']
+                                  )
+      end
+
+      it "walks in leaves-order" do
+        expect{|yld|
+          tree.walk(:leaves, &yld)
+        }.to yield_successive_args(
+                          Something[class: MultiGit::File, path: 'bar'],
+                          Something[class: MultiGit::File, path: 'foo/bar'],
+                                  )
+      end
+    end
+
+    describe "#glob", :glob => true do
+
+      it "finds the directory but not it's children" do
+        expect{|yld|
+          tree.glob('f*', &yld)
+        }.to yield_successive_args(Something[class: MultiGit::Directory, path: 'foo'] )
+      end
+
+      it "finds the files with recursive directory matching" do
+        expect{|yld|
+          tree.glob('**/bar', &yld)
+        }.to yield_successive_args(Something[class: MultiGit::File, path: 'bar'],
+                                   Something[class: MultiGit::File, path: 'foo/bar'])
+      end
     end
 
   end
@@ -773,7 +811,6 @@ env -i git update-ref refs/heads/master $COID 2>&1`
     end
 
   end
-
 
   context '#each_tag', tag: true do
 

@@ -23,6 +23,29 @@ module MultiGit
         e.with_parent(self) if e
       end
 
+      # @visibility private
+      def walk_pre(&block)
+        descend = block.call(self)
+        return if descend == false
+        each do |child|
+          child.walk(:pre, &block)
+        end
+      end
+
+      # @visibility private
+      def walk_post(&block)
+        each do |child|
+          child.walk(:post, &block)
+        end
+        block.call(self)
+      end
+
+      # @visibility private
+      def walk_leaves(&block)
+        each do |child|
+          child.walk(:leaves,&block)
+        end
+      end
     end
 
     class Builder < TreeEntry::Builder
