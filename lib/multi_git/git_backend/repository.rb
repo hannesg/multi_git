@@ -7,6 +7,7 @@ require 'multi_git/git_backend/tree'
 require 'multi_git/git_backend/commit'
 require 'multi_git/git_backend/ref'
 require 'multi_git/git_backend/config'
+require 'multi_git/git_backend/remote'
 module MultiGit::GitBackend
 
   class Repository < MultiGit::Repository
@@ -133,6 +134,15 @@ module MultiGit::GitBackend
 
     def config
       @config ||= Config.new(@git)
+    end
+
+    def remote( name_or_url )
+      if looks_like_remote_url? name_or_url
+        remote = Remote.new(self, name_or_url)
+      else
+        remote = Remote::Persistent.new(self, name_or_url)
+      end
+      return remote
     end
 
   private

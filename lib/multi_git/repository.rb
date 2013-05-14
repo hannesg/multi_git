@@ -242,4 +242,9 @@ protected
     raise Error::InvalidObjectType, type.inspect unless VALID_TYPES.include?(type)
   end
 
+  def looks_like_remote_url?(string)
+    # poor but efficient
+    string.include? '/'
+  end
+
 end

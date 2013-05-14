@@ -5,6 +5,7 @@ require 'multi_git/jgit_backend/tree'
 require 'multi_git/jgit_backend/commit'
 require 'multi_git/jgit_backend/ref'
 require 'multi_git/jgit_backend/config'
+require 'multi_git/jgit_backend/remote'
 module MultiGit::JGitBackend
   class Repository < MultiGit::Repository
 
@@ -215,6 +216,15 @@ module MultiGit::JGitBackend
     # @return (see MultiGit::Repository#parse)
     def parse(ref)
       return Java::OrgEclipseJgitLib::ObjectId.toString(parse_java(ref))
+    end
+
+    def remote( name_or_url )
+      if looks_like_remote_url? name_or_url
+        remote = Remote.new(self, name_or_url)
+      else
+        remote = Remote::Persistent.new(self, name_or_url)
+      end
+      return remote
     end
 
     # @visibility private

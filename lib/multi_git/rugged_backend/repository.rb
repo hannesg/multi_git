@@ -5,6 +5,7 @@ require 'multi_git/rugged_backend/tree'
 require 'multi_git/rugged_backend/commit'
 require 'multi_git/rugged_backend/ref'
 require 'multi_git/rugged_backend/config'
+require 'multi_git/rugged_backend/remote'
 module MultiGit::RuggedBackend
 
   class Repository < MultiGit::Repository
@@ -185,6 +186,24 @@ module MultiGit::RuggedBackend
       }
       oid = Rugged::Commit.create(@git, rugged_options)
       return read(oid)
+    end
+
+    # 
+    def remote( name_or_url )
+      if looks_like_remote_url? name_or_url
+        remote = Rugged::Remote.new(__backend__, name_or_url)
+      else
+        remote = Rugged::Remote.lookup(__backend__, name_or_url)
+      end
+      if remote
+        if remote.name
+          return Remote::Persistent.new(self, remote)
+        else
+          return Remote.new(self, remote)
+        end
+      else
+        return nil
+      end
     end
 
   private
