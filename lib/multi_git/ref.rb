@@ -272,6 +272,10 @@ module MultiGit
       !direct?
     end
 
+    def detached?
+      symbolic? && !target.kind_of?(Ref)
+    end
+
     def exists?
       !target.nil?
     end

@@ -15,19 +15,20 @@ module MultiGit
 
     private
 
-      SHOW_REF_LINE = /\A(\h{40}) ([^\n]+)\Z/.freeze
+      SYMBOLIC_REF_LINE = /\Aref: ([a-z0-9_]+(?:\/[a-z0-9_]+)*)\Z/i.freeze
+      OID_REF_LINE = /\A(\h{40})\Z/i.freeze
 
       def read!
         begin
-          if symbolic?
-            content = repository.__backend__['symbolic-ref', name]
-            @target = repository.ref(content.chomp)
+          content = IO.read(::File.join(repository.git_dir,name))
+          if content =~ SYMBOLIC_REF_LINE
+            @target = repository.ref($1)
+          elsif content =~ OID_REF_LINE
+            @target = repository.read($1)
           else
-            lines = repository.__backend__['show-ref', name].lines
-            match = SHOW_REF_LINE.match(lines.first)
-            @target = repository.read(match[1])
+            raise content.inspect
           end
-        rescue Cmd::Error::ExitCode1
+        rescue Errno::ENOENT
           # doesn't exists
         end
       end

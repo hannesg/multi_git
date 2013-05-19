@@ -777,6 +777,13 @@ env -i git update-ref refs/heads/master $COID 2>&1`
       r.target.should == master
     end
 
+    it "can detach symbolic refs" do
+      head = repository.ref('HEAD')
+      target = repository.ref('refs/heads/master').target
+      head.update{ target }
+      repository.ref('HEAD').target.should == target
+    end
+
   end
 
   context "#each_branch" do

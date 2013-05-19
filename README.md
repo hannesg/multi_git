@@ -77,7 +77,6 @@ multi\_git comes with three different backends:
 TODO ( loosely by priority )
 -----------------------------
 
-- Correctnes: handle symbolic refs gracefuly
 - Feature: Config
 - Feature: Ref#update(:reckless)
 - Efficiency: efficient Ref#resolve+update

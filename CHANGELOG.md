@@ -2,6 +2,7 @@
 
 * [ENHANCEMENT] Tree#glob now supports DOTMATCH
 * [BUG] Removed Tree#path ( did not made much sense since the path is not known )
+* [BUG] Detaching symbolic references now works as expected
 
 # 0.0.1.alpha2
 
