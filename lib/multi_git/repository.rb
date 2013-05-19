@@ -21,6 +21,12 @@ protected
 public
   extend Utils::AbstractMethods
 
+  # @!method config
+  #   @abstract
+  #   Returns the config
+  #   @return [Config]
+  abstract :config
+
   # @!method git_dir
   #   @abstract
   #   Return the repository base directory

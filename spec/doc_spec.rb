@@ -1,10 +1,16 @@
 require 'multi_git'
+require 'logger'
 describe "docs" do
+
+  if defined?(JRUBY_VERSION) && (JRUBY_VERSION =~ /\A1.7.[45]/)
+    pending "jruby 1.7.4 breaks yard"
+    next
+  end
 
   gem 'yard'
   require 'yard'
 
-  YARD.parse('lib/**/*.rb').inspect
+  YARD.parse('lib/**/*.rb')
 
   YARD::Registry.each do |object|
     if object.has_tag?('example')

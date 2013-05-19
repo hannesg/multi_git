@@ -45,4 +45,12 @@ describe MultiGit::GitBackend::Cmd, cmd: true do
     Cmd.new('/usr/bin/env').call_env({'FOO'=>'BAR'}).should == "FOO=BAR\n"
   end
 
+  it "takes a default env" do
+    Cmd.new({'FOO'=>'BAR'}, '/usr/bin/env').call.should == "FOO=BAR\n"
+  end
+
+  it "allows overiding the env" do
+    Cmd.new({'FOO'=>'BAR'}, '/usr/bin/env').call_env('FOO'=>'RAB').should == "FOO=RAB\n"
+  end
+
 end

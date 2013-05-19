@@ -4,6 +4,7 @@ require 'multi_git/jgit_backend/blob'
 require 'multi_git/jgit_backend/tree'
 require 'multi_git/jgit_backend/commit'
 require 'multi_git/jgit_backend/ref'
+require 'multi_git/jgit_backend/config'
 module MultiGit::JGitBackend
   class Repository < MultiGit::Repository
 
@@ -112,6 +113,10 @@ module MultiGit::JGitBackend
     def ref(name)
       validate_ref_name(name)
       Ref.new(self, name)
+    end
+
+    def config
+      @config ||= Config.new(@git.config)
     end
 
   private

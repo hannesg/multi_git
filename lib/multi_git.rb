@@ -4,6 +4,7 @@ require 'multi_git/backend'
 require 'multi_git/backend_set'
 require 'multi_git/error'
 require 'multi_git/utils'
+require 'multi_git/config'
 module MultiGit
 
 private

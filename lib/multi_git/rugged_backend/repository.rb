@@ -4,6 +4,7 @@ require 'multi_git/rugged_backend/blob'
 require 'multi_git/rugged_backend/tree'
 require 'multi_git/rugged_backend/commit'
 require 'multi_git/rugged_backend/ref'
+require 'multi_git/rugged_backend/config'
 module MultiGit::RuggedBackend
 
   class Repository < MultiGit::Repository
@@ -45,6 +46,7 @@ module MultiGit::RuggedBackend
           raise MultiGit::Error::NotARepository, path
         end
       end
+      @git.config = Rugged::Config.new(::File.join(@git.path, 'config'))
       verify_bareness(path, options)
     end
 
@@ -113,6 +115,10 @@ module MultiGit::RuggedBackend
     # @return (see MultiGit::Repository#include?)
     def include?(oid)
       @git.include?(oid)
+    end
+
+    def config
+      @config ||= Config.new(@git.config)
     end
 
     TRUE_LAMBDA = proc{ true }

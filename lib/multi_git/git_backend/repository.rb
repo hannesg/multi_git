@@ -6,6 +6,7 @@ require 'multi_git/git_backend/blob'
 require 'multi_git/git_backend/tree'
 require 'multi_git/git_backend/commit'
 require 'multi_git/git_backend/ref'
+require 'multi_git/git_backend/config'
 module MultiGit::GitBackend
 
   class Repository < MultiGit::Repository
@@ -35,7 +36,7 @@ module MultiGit::GitBackend
       @git_binary = `which git`.chomp
       options = initialize_options(path, options)
       git_dir = options[:repository]
-      @git = Cmd.new(git_binary, :git_dir => git_dir )
+      @git = Cmd.new({'GIT_CONFIG_NOSYSTEM'=>'1'}, git_binary, :git_dir => git_dir )
       if !::File.exists?(git_dir) || MultiGit::Utils.empty_dir?(git_dir)
         if options[:init]
           if options[:bare]
@@ -128,6 +129,10 @@ module MultiGit::GitBackend
     def ref(name)
       validate_ref_name(name)
       MultiGit::GitBackend::Ref.new(self, name)
+    end
+
+    def config
+      @config ||= Config.new(@git)
     end
 
   private

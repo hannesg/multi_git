@@ -20,9 +20,14 @@ module MultiGit::GitBackend
       end
     end
 
-    def initialize(command, options = {})
-      @cmd = command
-      @opts = options
+    def initialize(*args)
+      if args.first.kind_of? Hash
+        @env = args.shift
+      else
+        @env = {}
+      end
+      @cmd = args.shift
+      @opts = args.any? ? args.shift.dup : {}
     end
 
     READ_BLOCK = lambda{|io|
@@ -34,7 +39,7 @@ module MultiGit::GitBackend
       block ||= READ_BLOCK
       result = nil
       message = nil
-      status = popen_foo(env, s.join(' ')) do | stdin, stdout, stderr |
+      status = popen_foo(@env.merge(env), s.join(' ')) do | stdin, stdout, stderr |
         if block.arity == 1
           stdin.close
           result = block.call(stdout)

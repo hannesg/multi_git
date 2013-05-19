@@ -848,4 +848,28 @@ env -i git update-ref refs/heads/master $COID 2>&1`
     end
 
   end
+
+  describe '#config', config: true do
+
+    context 'with an empty repository' do
+
+      let(:repository){ described_class.open(tempdir, init: true, bare: true) }
+
+      subject do
+        repository.config
+      end
+
+      it "is a MultiGit::Config" do
+        should be_a(MultiGit::Config)
+      end
+
+      it "contains some keys" do
+        subject.to_h.should == {"core.filemode"=>"true",
+                                "core.logallrefupdates"=>"false",
+                                "core.bare"=>"true",
+                                "core.repositoryformatversion"=>"0"}
+      end
+    end
+
+  end
 end
