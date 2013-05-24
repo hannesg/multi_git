@@ -869,6 +869,10 @@ env -i git update-ref refs/heads/master $COID 2>&1`
                                 "core.bare"=>"true",
                                 "core.repositoryformatversion"=>"0"}
       end
+
+      it "supports hash-access" do
+        subject['core.filemode'].should == 'true'
+      end
     end
 
   end

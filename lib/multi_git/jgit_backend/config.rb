@@ -6,7 +6,7 @@ module MultiGit
       include MultiGit::Config
       extend Forwardable
 
-      delegate :each => :@config
+      delegate [:each, :[], :key?] => :@config
 
       def initialize(java_config)
         @java_config = java_config

@@ -7,7 +7,7 @@ module MultiGit
       include MultiGit::Config
       extend Forwardable
 
-      delegate :each => :@config
+      delegate [:each, :[], :key?] => :@config
 
       def initialize(rugged_config)
         @rugged_config = rugged_config
