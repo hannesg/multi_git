@@ -864,16 +864,38 @@ env -i git update-ref refs/heads/master $COID 2>&1`
       end
 
       it "contains some keys" do
-        subject.to_h.should == {"core.filemode"=>"true",
-                                "core.logallrefupdates"=>"false",
-                                "core.bare"=>"true",
-                                "core.repositoryformatversion"=>"0"}
+        subject.to_h.should == { ['core',nil,'bare'] => true }
       end
 
-      it "supports hash-access" do
-        subject['core.filemode'].should == 'true'
+      it "supports hash-access with a qualified key" do
+        subject['core.filemode'].should == true
       end
+
+      it "supports hash-access with section and key" do
+        subject['core','filemode'].should == true
+      end
+
     end
 
+    context 'with a repository containing a list-option' do
+
+      before(:each) do
+        `cd #{tempdir}
+         git init . --bare
+         git config --add remote.origin.url foo@bar.com:baz.git
+         git config --add remote.origin.url baz@foo.com:bar.git`
+      end
+
+      let(:repository){ described_class.open(tempdir, init: true, bare: true) }
+
+      subject do
+        repository.config
+      end
+
+      it "lists all values" do
+        subject['remote', 'origin', 'url'].should == ['foo@bar.com:baz.git', 'baz@foo.com:bar.git']
+      end
+
+    end
   end
 end

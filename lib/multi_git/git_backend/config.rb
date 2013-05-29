@@ -5,18 +5,36 @@ module MultiGit
     class Config
 
       include MultiGit::Config
-      extend Forwardable
-
-      delegate [:each, :[], :key?] => :@config
 
       def initialize(cmd)
-        conf = cmd['config','--list']
-        @explicit_config = Hash[conf.each_line.map do |line|
-          line.chomp.split('=',2)
-        end]
-        @config = DEFAULTS.merge(@explicit_config)
         @cmd = cmd
       end
+
+      def get( section, subsection, key )
+        s = schema_for(section, subsection, key)
+        begin
+          if s.list?
+            value = @cmd['config', '--get-all', qualified_key(section, subsection, key)].lines.map(&:chomp)
+          else
+            value = @cmd['config', '--get', qualified_key(section, subsection, key)].chomp
+          end
+          return s.convert(value)
+        rescue Cmd::Error::ExitCode1
+          return s.default
+        end
+      end
+
+      def each_explicit_key
+        return to_enum(:each_explicit_key) unless block_given?
+        @cmd.('config','--list') do |io|
+          io.each_line do |line|
+            name, _ = line.split('=',2)
+            yield *split_key(name)
+          end
+        end
+        return self
+      end
+
 
     end
   end

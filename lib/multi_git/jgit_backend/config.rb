@@ -4,25 +4,22 @@ module MultiGit
     class Config
 
       include MultiGit::Config
-      extend Forwardable
-
-      delegate [:each, :[], :key?] => :@config
 
       def initialize(java_config)
         @java_config = java_config
-        @config = DEFAULTS.merge(Hash[to_enum(:each_java).to_a])
       end
 
-    private
-      attr :java_config
-
-      def each_java
-        each_java_key do |sec, subsec, name|
-          yield [sec,subsec,name].compact.join('.'), java_config.getString(sec.to_java, subsec.to_java, name.to_java)
+      def get(section, subsection, name)
+        s = schema_for(section, subsection, name)
+        if s.list?
+          s.convert( java_config.getStringList(section, subsection, name).to_a )
+        else
+          s.convert( java_config.getString(section, subsection, name) )
         end
       end
 
-      def each_java_key
+      def each_explicit_key
+        return to_enum(:each_explicit_key) unless block_given?
         java_config.sections.map do |sec|
           java_config.getNames(sec.to_java, nil.to_java).each do |name|
             yield sec, nil, name
@@ -34,6 +31,10 @@ module MultiGit
           end
         end
       end
+
+    private
+
+      attr :java_config
 
     end
   end
