@@ -36,6 +36,32 @@ class Something
 
 end
 
+# A helper class which sorts the yielded args before checking them.
+# This is usefull if the order
+class YieldUnorderedArgs < RSpec::Matchers::BuiltIn::YieldSuccessiveArgs
+
+private
+  def args_match?
+    return false if @expected.size != @actual.size
+
+    @expected.zip(@actual.sort).all? do |expected, actual|
+      expected === actual || actual == expected
+    end
+  end
+end
+
+module CustomMatchers
+
+  def yield_unordered_args(*args)
+    YieldUnorderedArgs.new(*args)
+  end
+
+end
+
+RSpec.configure do |config|
+  config.expect_with( :rspec, CustomMatchers )
+end
+
 require 'shared'
 
 # Smart thing

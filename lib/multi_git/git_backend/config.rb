@@ -1,4 +1,5 @@
 require 'forwardable'
+require 'set'
 require 'multi_git/config'
 module MultiGit
   module GitBackend
@@ -26,9 +27,12 @@ module MultiGit
 
       def each_explicit_key
         return to_enum(:each_explicit_key) unless block_given?
+        seen = Set.new
         @cmd.('config','--list') do |io|
           io.each_line do |line|
             name, _ = line.split('=',2)
+            next if seen.include? name
+            seen << name
             yield *split_key(name)
           end
         end

@@ -875,6 +875,23 @@ env -i git update-ref refs/heads/master $COID 2>&1`
         subject['core','filemode'].should == true
       end
 
+      it 'should support #each' do
+        expect{|yld|
+          subject.each(&yld)
+        }.to yield_with_args(['core',nil,'bare'],true)
+      end
+
+      it 'hash-access barfs when called with too many arguments' do
+        expect{
+          subject['1','2','3','4']
+        }.to raise_error(ArgumentError, /(4 for 1..3)/)
+      end
+
+      it 'hash-access barfs when called with malformated qualified key' do
+        expect{
+          subject['key']
+        }.to raise_error(ArgumentError, /Expected the qualified key/)
+      end
     end
 
     context 'with a repository containing a list-option' do
@@ -896,6 +913,52 @@ env -i git update-ref refs/heads/master $COID 2>&1`
         subject['remote', 'origin', 'url'].should == ['foo@bar.com:baz.git', 'baz@foo.com:bar.git']
       end
 
+      it 'supports #each' do
+        expect{|yld|
+          subject.each(&yld)
+        }.to yield_unordered_args(
+          [['core',nil,'bare'],true],
+          [['remote', 'origin', 'url'], ['foo@bar.com:baz.git', 'baz@foo.com:bar.git']]
+        )
+      end
     end
+  end
+
+  describe "Config#section", :section => true do
+
+    context 'with a repository containing a remote' do
+
+      before(:each) do
+        `cd #{tempdir}
+         git init . --bare
+         git remote add origin baz@foo.com:bar.git`
+      end
+
+      let(:repository){ described_class.open(tempdir, init: true, bare: true) }
+
+      subject do
+        repository.config.section('remote', 'origin')
+      end
+
+      it "returns a section" do
+        expect(subject).to be_a MultiGit::Config::Section
+      end
+
+      it "supports hash-access" do
+        expect(subject['url']).to eql ['baz@foo.com:bar.git']
+      end
+
+      it 'supports #each' do
+        expect{|yld|
+          subject.each(&yld)
+        }.to yield_unordered_args(['fetch','+refs/heads/*:refs/remotes/origin/*'],['url',['baz@foo.com:bar.git']])
+      end
+
+      it "supports #to_h" do
+        expect(subject.to_h).to eql({'url' => ['baz@foo.com:bar.git'], 'fetch' => '+refs/heads/*:refs/remotes/origin/*'})
+      end
+
+    end
+
   end
 end
