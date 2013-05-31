@@ -66,6 +66,10 @@ If this happens frequently, you may have want to run "git gc" to remove clobber.
       end
     end
 
+    class DuplicateConfigKey < Exception
+      include Error
+    end
+
   end
 
 end

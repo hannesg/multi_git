@@ -922,6 +922,29 @@ env -i git update-ref refs/heads/master $COID 2>&1`
         )
       end
     end
+
+    context 'with a repository containing multiple values for a non-list-option' do
+
+      before(:each) do
+        `cd #{tempdir}
+         git init . --bare
+         git config --add core.bare false`
+      end
+
+      let(:repository){ described_class.open(tempdir, init: true, bare: true) }
+
+      subject do
+        repository.config
+      end
+
+      it "takes the last one" do
+        begin
+          subject['core', nil, 'bare'].should be_true
+        rescue MultiGit::Error::DuplicateConfigKey
+          # good!
+        end
+      end
+    end
   end
 
   describe "Config#section", :section => true do

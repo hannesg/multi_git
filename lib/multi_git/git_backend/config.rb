@@ -22,6 +22,8 @@ module MultiGit
           return s.convert(value)
         rescue Cmd::Error::ExitCode1
           return s.default
+        rescue Cmd::Error::ExitCode2
+          raise Error::DuplicateConfigKey, qualified_key(section, subsection, key)
         end
       end
 
