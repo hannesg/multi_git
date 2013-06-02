@@ -34,7 +34,7 @@ module MultiGit
       include Remote
       extend Utils::AbstractMethods
 
-      # @!attrbute name
+      # @!attribute name
       #   @return [String, nil]
       abstract :name
 
