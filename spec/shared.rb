@@ -1021,11 +1021,11 @@ env -i git update-ref refs/heads/master $COID 2>&1`
       end
 
       it 'has the correct fetch_url' do
-        remote.fetch_url.should == 'git://github.com/git/git.git'
+        remote.fetch_urls.should == ['git://github.com/git/git.git']
       end
 
       it 'has the correct push_url' do
-        remote.push_url.should == 'git://github.com/git/git.git'
+        remote.push_urls.should == ['git://github.com/git/git.git']
       end
     end
 
@@ -1046,11 +1046,11 @@ env -i git update-ref refs/heads/master $COID 2>&1`
       end
 
       it 'has the correct fetch_url' do
-        remote.fetch_url.should == 'git://github.com/git/git.git'
+        remote.fetch_urls.should == ['git://github.com/git/git.git']
       end
 
       it 'has the correct push_url' do
-        remote.fetch_url.should == 'git://github.com/git/git.git'
+        remote.fetch_urls.should == ['git://github.com/git/git.git']
       end
     end
 

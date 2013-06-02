@@ -17,23 +17,24 @@ module MultiGit
           @repository = repo
         end
 
-        def fetch_url
-          return repository.config["remote.#{name}.url"]
+        def fetch_urls
+          return repository.config['remote',name,'url']
         end
 
-        def push_url
-          return repository.config["remote.#{name}.pushurl"] || fetch_url
+        def push_urls
+          pu = repository.config['remote',name,'pushurl']
+          return pu.any? ? pu : fetch_urls
         end
 
       end
 
-      attr :fetch_url
-      attr :push_url
+      attr :fetch_urls
+      attr :push_urls
 
       def initialize( repo, url, push_url = url )
         @repository = repo
-        @fetch_url = url
-        @push_url  = push_url
+        @fetch_urls = Array(url)
+        @push_urls  = Array(push_url)
       end
 
     end

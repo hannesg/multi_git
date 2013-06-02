@@ -42,9 +42,9 @@ module MultiGit
         end
       end
 
-    private
-
       attr :java_config
+
+      alias to_java java_config
 
     end
   end

@@ -30,17 +30,17 @@ module MultiGit
       def initialize( repository, url, push_url = url )
         @repository = repository
         conf = Java::OrgEclipseJgitLib::Config.new
-        conf.setString(REMOTE_SECTION, TEMPORARY_SECTION, FETCH_URL_KEY, url)
-        conf.setString(REMOTE_SECTION, TEMPORARY_SECTION, PUSH_URL_KEY, push_url)
+        conf.setStringList(REMOTE_SECTION, TEMPORARY_SECTION, FETCH_URL_KEY, Array(url))
+        conf.setStringList(REMOTE_SECTION, TEMPORARY_SECTION, PUSH_URL_KEY, Array(push_url))
         @java_config = Java::OrgEclipseJgitTransport::RemoteConfig.new(conf, TEMPORARY_SECTION)
       end
 
-      def fetch_url
-        java_config.getURIs.first.to_s
+      def fetch_urls
+        java_config.getURIs.map(&:to_s)
       end
 
-      def push_url
-        java_config.getPushURIs.first.to_s
+      def push_urls
+        java_config.getPushURIs.map(&:to_s)
       end
 
     private
