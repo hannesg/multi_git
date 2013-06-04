@@ -118,7 +118,7 @@ module MultiGit; module Config
         @hash[name] = String.new(default)
       end
 
-      def array(name, default = nil)
+      def array(name, default = [])
         @hash[name] = Array.new(default)
       end
 

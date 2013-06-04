@@ -18,14 +18,12 @@ module MultiGit
       def get(section, subsection, key)
         s = schema_for(section, subsection, key)
         v = @config[ [section, subsection,key] ]
-        if s.list?
-          s.convert(v)
-        elsif v.size == 1
-          s.convert(v[0])
-        elsif v.size == 0
+        if v.size == 0
           s.default
+        elsif s.list?
+          s.convert(v)
         else
-          raise Error::DuplicateConfigKey, qualified_key(section, subsection, key)
+          s.convert(v.last)
         end
       end
 

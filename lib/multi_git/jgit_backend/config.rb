@@ -12,9 +12,19 @@ module MultiGit
       def get(section, subsection, name)
         s = schema_for(section, subsection, name)
         if s.list?
-          s.convert( java_config.getStringList(section, subsection, name).to_a )
+          value = java_config.getStringList(section, subsection, name).to_a
+          if value.any?
+            return s.convert(value)
+          else
+            return s.default
+          end
         else
-          s.convert( java_config.getString(section, subsection, name) )
+          value = java_config.getString(section, subsection, name)
+          if value.nil?
+            return s.default
+          else
+            return s.convert( value )
+          end
         end
       end
 

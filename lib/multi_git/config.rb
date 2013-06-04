@@ -69,7 +69,7 @@ module MultiGit
     include Enumerable
 
     def schema
-      DEFAULT_SCHEMA
+      @schema ||= DEFAULT_SCHEMA
     end
 
     def schema_for( section, subsection, key )
@@ -155,6 +155,16 @@ module MultiGit
       ['{config', *each.map{|key, value| " "+qualified_key(*key)+" => "+value.inspect },'}'].join("\n")
     end
     # :nocov:
+
+    # Dups the object with a different schema
+    # @api private
+    def with_schema(sch)
+      d = dup
+      d.instance_eval do
+        @schema = sch
+      end
+      return d
+    end
 
   end
 end

@@ -14,11 +14,11 @@ module MultiGit
       def get( section, subsection, key )
         s = schema_for(section, subsection, key)
         begin
-          if s.list?
-            value = @cmd['config', '--get-all', qualified_key(section, subsection, key)].lines.map(&:chomp)
-          else
-            value = @cmd['config', '--get', qualified_key(section, subsection, key)].chomp
-          end
+          # git < 1.8.0 barfs when using --get on a multiply defined 
+          #  value, but uses the last value internally.
+          # git >= 1.8.0 simply returns the last value
+          value = @cmd['config', '--get-all', qualified_key(section, subsection, key)].lines.map(&:chomp)
+          value = value.last unless s.list?
           return s.convert(value)
         rescue Cmd::Error::ExitCode1
           return s.default

@@ -178,6 +178,10 @@ shared_examples "a MultiGit backend" do
     FileUtils.rm_rf( tempdir )
   end
 
+  def jgit?
+    described_class == MultiGit::JGitBackend
+  end
+
   context "with an empty directory" do
 
     it "barfs" do
@@ -875,6 +879,29 @@ env -i git update-ref refs/heads/master $COID 2>&1`
         subject['core','filemode'].should == true
       end
 
+      it "uses the default for a simple non-existing key" do
+        # lets hope git will never have a priates config ^^
+        conf = subject.with_schema(
+          MultiGit::Config::Schema.build do
+            section "pirates" do
+              bool "arrrrr", true
+            end
+          end
+        )
+        expect( conf['pirates','arrrrr'] ).to be_true
+      end
+
+      it "uses the default for a list non-existing key" do
+        conf = subject.with_schema(
+          MultiGit::Config::Schema.build do
+            section "pirates" do
+              array "arrrrr", ['waaaaa']
+            end
+          end
+        )
+        expect( conf['pirates','arrrrr'] ).to eql ['waaaaa']
+      end
+
       it 'should support #each' do
         expect{|yld|
           subject.each(&yld)
@@ -938,11 +965,8 @@ env -i git update-ref refs/heads/master $COID 2>&1`
       end
 
       it "takes the last one" do
-        begin
-          subject['core', nil, 'bare'].should be_true
-        rescue MultiGit::Error::DuplicateConfigKey
-          # good!
-        end
+        pending "See list of inconsistencies" if jgit?
+        subject['core', nil, 'bare'].should be_false
       end
     end
   end
