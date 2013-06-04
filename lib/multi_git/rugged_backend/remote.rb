@@ -19,7 +19,7 @@ module MultiGit
       # :nocov:
       if Rugged::Remote.instance_methods.include? :push_url
         def push_urls
-          [rugged_remote.push_url]
+          [rugged_remote.push_url || rugged_remote.url]
         end
       else
         def push_urls
