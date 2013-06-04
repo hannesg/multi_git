@@ -40,7 +40,8 @@ module MultiGit
       end
 
       def push_urls
-        java_config.getPushURIs.map(&:to_s)
+        pu = java_config.getPushURIs.map(&:to_s)
+        pu.any? ? pu : fetch_urls
       end
 
     private

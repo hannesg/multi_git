@@ -9,13 +9,13 @@ module MultiGit
     #   @return [Repository]
     abstract :repository
 
-    # @!attribute fetch_url
-    #   @return [URI]
-    abstract :fetch_url
+    # @!attribute fetch_urls
+    #   @return [Enumerable<URI>]
+    abstract :fetch_urls
 
-    # @!attribute push_url
-    #   @return [URI]
-    abstract :push_url
+    # @!attribute push_urls
+    #   @return [Enumerable<URI>]
+    abstract :push_urls
 
     # @!method fetch( *refspecs )
     #   @param refspecs [RefSpec, String, Range, Hash, ...]

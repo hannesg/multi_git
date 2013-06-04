@@ -15,6 +15,7 @@ end
 section 'remote' do
   any_section do
     array 'url'
+    array 'pushurl'
     string 'fetch'
   end
 end
