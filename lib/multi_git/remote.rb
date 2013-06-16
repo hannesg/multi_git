@@ -42,6 +42,23 @@ module MultiGit
       #   @param name [String]
       #   @return [Persistent]
       abstract :save
+
+    protected
+
+      def refspec_parser
+        RefSpec::Parser.new("refs/remotes/#{name}/")
+      end
+
+    end
+
+  protected
+
+    def parse_fetch_refspec(*refspecs)
+      refspec_parser[*refspecs]
+    end
+
+    def refspec_parser
+      RefSpec::Parser.new("refs/remotes//")
     end
 
   end

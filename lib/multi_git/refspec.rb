@@ -34,6 +34,10 @@ module MultiGit
       ['#<',self.class,' ',forced ? '+':'',from,':',to,'>'].join
     end
 
+    def to_s
+      [forced ? '+':'',from,':',to].join
+    end
+
     class Parser
 
       REF = %r{\A(\+?)([a-zA-Z/0-9_*]+)?(?:(:)([a-zA-Z/0-9_*]+)?)?\z}

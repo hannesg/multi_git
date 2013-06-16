@@ -27,6 +27,9 @@ module MultiGit
       FETCH_URL_KEY = 'url'.to_java
       PUSH_URL_KEY = 'pushurl'.to_java
 
+      FETCH = Java::OrgEclipseJgitTransport::Transport::Operation::FETCH
+      PUSH  = Java::OrgEclipseJgitTransport::Transport::Operation::PUSH
+
       def initialize( repository, url, push_url = url )
         @repository = repository
         conf = Java::OrgEclipseJgitLib::Config.new
@@ -44,9 +47,27 @@ module MultiGit
         pu.any? ? pu : fetch_urls
       end
 
+      def fetch( *refspecs )
+        rs = parse_fetch_refspec(*refspecs).map{|refspec| Java::OrgEclipseJgitTransport::RefSpec.new(refspec.to_s) }
+        use_transport( FETCH ) do | transport |
+          transport.fetch( transport_monitor, rs )
+        end
+      end
+
     private
 
       attr :java_config
+
+      def use_transport( op )
+        tr = Java::OrgEclipseJgitTransport::Transport.open(repository.__backend__, java_config, op)
+        yield tr
+      ensure
+        tr.close
+      end
+
+      def transport_monitor
+        Java::OrgEclipseJgitLib::NullProgressMonitor::INSTANCE
+      end
 
     end
   end

@@ -37,6 +37,11 @@ module MultiGit
         @push_urls  = Array(push_url)
       end
 
+      def fetch(*refspecs)
+        rs = parse_fetch_refspec(*refspecs)
+        repository.__backend__['fetch',fetch_urls.first,*rs.map(&:to_s)]
+      end
+
     end
   end
 end

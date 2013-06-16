@@ -42,6 +42,19 @@ module MultiGit
 
       end
 
+      def fetch(*refspecs)
+        rs = parse_fetch_refspec(*refspecs)
+        cl = Rugged::Remote.new(repository.__backend__, fetch_urls.first)
+        cl.clear_refspecs
+        rs.each do |spec|
+          cl.add_fetch(spec.to_s)
+        end
+        cl.connect(:fetch) do |r|
+          r.download
+        end
+        cl.update_tips!
+      end
+
     end
   end
 end
