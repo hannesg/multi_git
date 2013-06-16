@@ -3,6 +3,7 @@
 * [FEATURE] basic remotes support
 * [FEATURE] Repository#config
 * [ENHANCEMENT] Tree#glob now supports DOTMATCH
+* [ENHANCEMENT] Repository#head method to get the current HEAD
 * [BUG] Removed Tree#path ( did not made much sense since the path is not known )
 * [BUG] Detaching symbolic references now works as expected
 

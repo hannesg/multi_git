@@ -107,6 +107,12 @@ public
   #   @return [MultiGit::Ref] ref
   abstract :ref
 
+  # Gets the ref
+  # @return [Ref] head
+  def head
+    return ref('HEAD')
+  end
+
   # Opens a branch
   #
   # @param name [String] branch name
