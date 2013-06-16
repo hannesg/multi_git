@@ -1,7 +1,8 @@
 GIT
-  remote: git://github.com/hannesg/rugged.git
-  revision: 64741d3fc812503d58f670cdc19ee0b90d4d7832
-  branch: installable_via_bundle
+  remote: git://github.com/libgit2/rugged.git
+  revision: 0027bb11e1fb5a4920c10fe93dc5bb4b027e8303
+  branch: development
+  submodules: true
   specs:
     rugged (0.18.0.b1)
 
