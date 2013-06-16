@@ -338,12 +338,32 @@ module MultiGit
       end
     end
 
+    # Shorthand for deleting this ref.
+    # @return [Ref]
     def delete
       update(:pessimistic){ nil }
     end
 
-    def commit(&block)
-      resolve.update do |current|
+    # Shorthand method to directly create a commit and update the given ref.
+    #
+    # @example
+    #  # setup:
+    #  dir = `mktemp -d`
+    #  repository = MultiGit.open(dir, init: true)
+    #  # insert a commit:
+    #  repository.head.commit do
+    #    tree['a_file'] = 'some_content'
+    #  end
+    #  # check result:
+    #  repository.head['a_file'].content #=> eql 'some_content'
+    #  # teardown:
+    #  `rm -rf #{dir}`
+    #
+    # @option options :lock [:optimistic, :pessimistic] How to lock during the commit.
+    # @yield
+    # @return [Ref]
+    def commit(options = {}, &block)
+      resolve.update(options.fetch(:lock, :optimistic)) do |current|
         Commit::Builder.new(current, &block)
       end
       return reload
