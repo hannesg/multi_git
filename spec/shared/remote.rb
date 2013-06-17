@@ -57,7 +57,7 @@ describe '#remote#fetch', remote: true do
     remote.branch('master').update do
       MultiGit::Commit::Builder.new do
         tree.file "foo", "bar"
-        at Time.new(2010,1,1,12,0,0)
+        at Time.utc(2010,1,1,12,0,0)
       end
     end
     remote['HEAD'].update do
@@ -75,7 +75,7 @@ describe '#remote#fetch', remote: true do
 
     it "can fetch stuff" do
       remote.fetch('master:foo/master')
-      repository.branch('foo/master').target.oid.should == 'f1df07b6610bd7135015e8c00e7531f861f9c5bc'
+      repository.branch('foo/master').target.oid.should == 'c95a6d2f9c58636f705ae9a7df74a8352b45ac2d'
     end
 
   end
@@ -90,7 +90,7 @@ describe '#remote#fetch', remote: true do
 
     it "can fetch stuff" do
       remote.fetch('master')
-      repository.branch('origin/master').target.oid.should == 'f1df07b6610bd7135015e8c00e7531f861f9c5bc'
+      repository.branch('origin/master').target.oid.should == 'c95a6d2f9c58636f705ae9a7df74a8352b45ac2d'
     end
 
   end
