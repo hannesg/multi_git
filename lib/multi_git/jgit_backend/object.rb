@@ -6,6 +6,7 @@ class MultiGit::JGitBackend::Object
   import "org.eclipse.jgit.lib.ObjectId"
 
   extend Forwardable
+  extend MultiGit::Utils::Memoizes
 
   include MultiGit::Object
 
@@ -14,7 +15,7 @@ class MultiGit::JGitBackend::Object
     @java_oid = oid
     @git = repository.__backend__
     @oid = ObjectId.toString(oid)
-    @java_object = object
+    set_memoized_java_object( object ) if object
   end
 
   def bytesize
@@ -26,8 +27,10 @@ class MultiGit::JGitBackend::Object
   end
 
   def content
-    @content ||= to_io.read.freeze
+    to_io.read.freeze
   end
+
+  memoize :content
 
 private
 
@@ -42,7 +45,9 @@ protected
   attr :java_oid
 
   def java_object
-    @java_object ||= repository.use_reader{|rdr| rdr.open(@java_oid) }
+    repository.use_reader{|rdr| rdr.open(@java_oid) }
   end
+
+  memoize :java_object
 
 end

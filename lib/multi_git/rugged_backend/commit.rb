@@ -6,12 +6,14 @@ module MultiGit
       include MultiGit::Commit
 
       def tree
-        @tree ||= repository.read(rugged_object.tree_oid)
+        repository.read(rugged_object.tree_oid)
       end
 
       def parents
-        @parents ||= rugged_object.parent_oids.map{|oid| repository.read(oid) }
+        rugged_object.parent_oids.map{|oid| repository.read(oid) }
       end
+
+      memoize :tree, :parents
 
       def author
         MultiGit::Handle.new(rugged_object.author[:name],rugged_object.author[:email])

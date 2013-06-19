@@ -26,7 +26,8 @@ module MultiGit
       # @return [MultiGit::Tree::Base]
       attr :parent
 
-      extend MultiGit::Utils::AbstractMethods
+      extend Utils::AbstractMethods
+      extend Utils::Memoizes
 
       # @!method mode
       #   @abstract
@@ -47,14 +48,14 @@ module MultiGit
       end
 
       def path
-        @path ||= begin
-                    if parent.respond_to? :path
-                      [parent.path,SLASH, name].join
-                    else
-                      name
-                    end
-                  end
+        if parent.respond_to? :path
+          [parent.path,SLASH, name].join
+        else
+          name
+        end
       end
+
+      memoize :path
 
     end
 

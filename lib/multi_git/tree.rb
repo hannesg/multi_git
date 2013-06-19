@@ -174,6 +174,7 @@ module MultiGit
 
     include Base
     include Object
+    extend Utils::Memoizes
 
     def to_builder
       Builder.new(self)
@@ -187,8 +188,10 @@ module MultiGit
   protected
     # @return [Hash<String, MultiGit::TreeEntry>]
     def entries
-      @entries ||= Hash[ raw_entries.map{|name, mode, oid| [name, make_entry(name, mode, oid) ] } ]
+      Hash[ raw_entries.map{|name, mode, oid| [name, make_entry(name, mode, oid) ] } ]
     end
+
+    memoize :entries
 
     def raw_entries
       raise Error::NotYetImplemented, "#{self.class}#each_entry"

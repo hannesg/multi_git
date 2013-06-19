@@ -3,6 +3,7 @@ require 'forwardable'
 class MultiGit::GitBackend::Object
 
   extend Forwardable
+  extend MultiGit::Utils::Memoizes
 
   include MultiGit::Object
 
@@ -10,22 +11,26 @@ class MultiGit::GitBackend::Object
     @repository = repository
     @git = repository.__backend__
     @oid = oid
-    @content = content ? content.dup.freeze : nil
-  end
-
-  def bytesize
-    @size ||= begin
-      if @content
-        @content.bytesize
-      else
-        @git['cat-file',:s,@oid].to_i
-      end
+    if content
+      set_memoized_content( content.dup.freeze )
     end
   end
 
-  def content
-    @content ||= @git['cat-file',type.to_s,@oid].freeze
+  def bytesize
+    if @content
+      @content.bytesize
+    else
+      @git['cat-file',:s,@oid].to_i
+    end
   end
+
+  memoize :bytesize
+
+  def content
+    @git['cat-file',type.to_s,@oid].freeze
+  end
+
+  memoize :content
 
   def to_io
     StringIO.new(content)

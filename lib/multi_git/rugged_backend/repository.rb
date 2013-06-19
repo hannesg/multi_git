@@ -11,6 +11,7 @@ module MultiGit::RuggedBackend
   class Repository < MultiGit::Repository
 
     extend Forwardable
+    extend MultiGit::Utils::Memoizes
 
   private
     OBJECT_CLASSES = {
@@ -119,8 +120,10 @@ module MultiGit::RuggedBackend
     end
 
     def config
-      @config ||= Config.new(@git.config)
+      Config.new(@git.config)
     end
+
+    memoize :config
 
     TRUE_LAMBDA = proc{ true }
 

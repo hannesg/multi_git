@@ -13,6 +13,76 @@ RUBY
 
     end
 
+    # @visibility private
+    # @api private
+    module Memoizes
+
+      class Strategy
+        def memoized_variable( name )
+          "@#{name}"
+        end
+
+        def unmemoized_method( name )
+          "unmemoized_#{name}"
+        end
+
+        def memoized_setter_method( name )
+          "set_memoized_#{name}"
+        end
+
+      end
+
+      class Simple < Strategy
+        def call( name )
+return <<RUBY
+alias #{unmemoized_method name} #{name}
+def #{name}
+  defined?(#{memoized_variable name}) ? #{memoized_variable name} : #{memoized_variable name} = #{unmemoized_method name}
+end
+def #{memoized_setter_method name}( value )
+  #{memoized_variable name} = value
+end
+RUBY
+        end
+      end
+
+      class Synced < Strategy
+        def call( name )
+return <<RUBY
+alias #{unmemoized_method name} #{name}
+def #{name}
+  if defined?(#{memoized_variable name})
+    return #{memoized_variable name}
+  else
+    #{sync} do
+      if defined?(#{memoized_variable name})
+        return #{memoized_variable name}
+      else
+        return #{memoized_variable name} = #{unmemoized_method name}
+      end
+    end
+  end
+end
+def #{memoized_setter_method name}( value )
+  #{memoized_variable name} = value
+end
+RUBY
+        end
+
+        def sync
+          "synchronize"
+        end
+      end
+
+      def memoize(*names)
+        options = names.last.kind_of?(Hash) ? names.pop : {}
+        strategy = options[:synchronize] ? Synced.new : Simple.new
+        names.each do |name|
+          class_eval strategy.call(name)
+        end
+      end
+    end
+
     NULL_OID = '0'*40
 
     MODE_SYMLINK =     0120000

@@ -19,6 +19,8 @@ module MultiGit::GitBackend
 
     Utils = MultiGit::Utils
 
+    extend Utils::Memoizes
+
     OBJECT_CLASSES = {
       :blob => Blob,
       :tree => Tree,
@@ -133,8 +135,10 @@ module MultiGit::GitBackend
     end
 
     def config
-      @config ||= Config.new(@git)
+      Config.new(@git)
     end
+
+    memoize :config
 
     def remote( name_or_url )
       if looks_like_remote_url? name_or_url

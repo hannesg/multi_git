@@ -8,37 +8,42 @@ module MultiGit
      import 'org.eclipse.jgit.revwalk.RevWalk'
 
       def parents
-        @parents ||= java_commit.parents.map{|pr| repository.read(pr.getId()) }
+        java_commit.parents.map{|pr| repository.read(pr.getId()) }
       end
 
       def tree
-        @tree ||= repository.read(java_commit.tree.id)
+        repository.read(java_commit.tree.id)
       end
 
       def message
-        @message ||= java_commit.full_message.freeze
+        java_commit.full_message.freeze
       end
 
       def time
-        @time ||= java_commit.author_ident.when
+        java_commit.author_ident.when
       end
 
       def commit_time
-        @time ||= java_commit.committer_ident.when
+        java_commit.committer_ident.when
       end
 
       def author
-        @author ||= MultiGit::Handle.new(java_commit.author_ident.name,java_commit.author_ident.email_address)
+        MultiGit::Handle.new(java_commit.author_ident.name,java_commit.author_ident.email_address)
       end
 
       def committer
-        @committer ||= MultiGit::Handle.new(java_commit.committer_ident.name,java_commit.committer_ident.email_address)
+        MultiGit::Handle.new(java_commit.committer_ident.name,java_commit.committer_ident.email_address)
       end
+
+      memoize :parents, :tree, :message, :time, :commit_time, :author, :committer
+
     private
 
       def java_commit
-        @java_commit ||= repository.use_reader{|rd| RevWalk.new(rd).parseCommit(java_oid) }
+        repository.use_reader{|rd| RevWalk.new(rd).parseCommit(java_oid) }
       end
+
+      memoize :java_commit
 
     end
   end

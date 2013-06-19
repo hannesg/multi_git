@@ -4,6 +4,7 @@ module MultiGit
     class Ref
 
       include MultiGit::Ref
+      extend Utils::Memoizes
 
       # HACK!
       # @api private
@@ -97,14 +98,14 @@ module MultiGit
 
       def target
         return nil unless java_ref
-        @target ||= begin
-                    if java_ref.symbolic?
-                      repository.ref(java_ref.target.name)
-                    else
-                      repository.read(java_ref.getObjectId())
-                    end
-                  end
+        if java_ref.symbolic?
+          repository.ref(java_ref.target.name)
+        else
+          repository.read(java_ref.getObjectId())
+        end
       end
+
+      memoize :target
 
       # @api private
       # @visibility private

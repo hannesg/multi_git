@@ -5,12 +5,13 @@ class MultiGit::RuggedBackend::Object
   include MultiGit::Object
 
   extend Forwardable
+  extend MultiGit::Utils::Memoizes
 
   def initialize( repository, oid, object = nil )
     @repository = repository
     @git = repository.__backend__
     @oid = oid
-    @rugged_object = object
+    set_memoized_rugged_object(object) if object
   end
 
   def to_io
@@ -22,17 +23,23 @@ class MultiGit::RuggedBackend::Object
   end
 
   def content
-    @content ||= rugged_odb.data.freeze
+    rugged_odb.data.freeze
   end
+
+  memoize :content
 
 protected
 
   def rugged_object
-    @rugged_object ||= @git.lookup(@oid)
+    @git.lookup(@oid)
   end
 
+  memoize :rugged_object
+
   def rugged_odb
-    @rugged_odb ||= @git.read(@oid)
+    @git.read(@oid)
   end
+
+  memoize :rugged_odb
 
 end

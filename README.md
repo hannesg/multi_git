@@ -81,7 +81,6 @@ TODO ( loosely by priority )
 - Feature: Ref#update(:reckless)
 - Efficiency: efficient Ref#resolve+update
 - Feature: Remotes/Clone/Push/Fetch ( blocked by config )
-- Code Quality: Unify memoizing
 - Awesomeness: benchmark backends against each other
 - Feature: Index/Working Directory
 - Feature: RefWalks

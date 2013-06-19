@@ -6,6 +6,7 @@ module MultiGit
     class Ref
 
       include MultiGit::Ref
+      extend MultiGit::Utils::Memoizes
 
       # @api private
       def initialize(repository, name)
@@ -21,14 +22,14 @@ module MultiGit
 
       def target
         return nil unless rugged_ref
-        @target ||= begin
-                      if rugged_ref.type == :symbolic
-                        repository.ref(rugged_ref.target)
-                      else
-                        repository.read(rugged_ref.target)
-                      end
-                    end
+        if rugged_ref.type == :symbolic
+          repository.ref(rugged_ref.target)
+        else
+          repository.read(rugged_ref.target)
+        end
       end
+
+      memoize :target
 
     private
       attr :rugged_ref

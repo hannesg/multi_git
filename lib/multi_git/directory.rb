@@ -46,6 +46,12 @@ module MultiGit
           child.walk(:leaves,&block)
         end
       end
+
+      def entries
+        Hash[
+          object.map{|entry| [entry.name, entry.with_parent(self) ] }
+        ]
+      end
     end
 
     class Builder < TreeEntry::Builder
@@ -68,22 +74,12 @@ module MultiGit
       def entry_set(key, value)
         object.entry_set(key, make_entry(key, value))
       end
-
-      def entries
-        Hash[
-          object.map{|entry| [entry.name, entry.with_parent(self) ] }
-        ]
-      end
-
     end
 
     include Base
+    extend Utils::Memoizes
 
-    def entries
-      @entries ||= Hash[
-        object.map{|entry| [entry.name, entry.with_parent(self) ] }
-      ]
-    end
+    memoize :entries
 
   end
 
