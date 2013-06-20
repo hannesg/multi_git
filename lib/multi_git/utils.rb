@@ -46,34 +46,6 @@ RUBY
         end
       end
 
-      class Synced < Strategy
-        def call( name )
-return <<RUBY
-alias #{unmemoized_method name} #{name}
-def #{name}
-  if defined?(#{memoized_variable name})
-    return #{memoized_variable name}
-  else
-    #{sync} do
-      if defined?(#{memoized_variable name})
-        return #{memoized_variable name}
-      else
-        return #{memoized_variable name} = #{unmemoized_method name}
-      end
-    end
-  end
-end
-def #{memoized_setter_method name}( value )
-  #{memoized_variable name} = value
-end
-RUBY
-        end
-
-        def sync
-          "synchronize"
-        end
-      end
-
       def memoize(*names)
         options = names.last.kind_of?(Hash) ? names.pop : {}
         strategy = options[:synchronize] ? Synced.new : Simple.new
