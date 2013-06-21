@@ -341,18 +341,8 @@ module MultiGit
     #  # teardown:
     #  `rm -rf #{dir}`
     def update( value_or_lock = :optimistic )
-      if block_given?
-        updater_class = case value_or_lock
-                  when :optimistic  then optimistic_updater
-                  when :pessimistic then pessimistic_updater
-                  when :reckless    then reckless_updater
-                  end
-        updater = updater_class.new(self)
-        updater.update( yield(updater.target) )
-      else
-        updater = pessimistic_updater.new(self)
-        updater.update( value_or_lock )
-      end
+      updater = updater_class(block_given?, value_or_lock).new(self)
+      updater.update( block_given? ? yield(updater.target) : value_or_lock )
       return reload
     ensure
       updater.destroy! if updater
@@ -428,6 +418,18 @@ module MultiGit
 
     def reckless_updater
       RecklessUpdater
+    end
+
+    def updater_class( block_given, lock )
+      if block_given
+        case lock
+        when :optimistic  then optimistic_updater
+        when :pessimistic then pessimistic_updater
+        when :reckless    then reckless_updater
+        end
+      else
+        pessimistic_updater
+      end
     end
 
   end
