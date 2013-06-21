@@ -66,7 +66,7 @@ module MultiGit
 
       def parse_signature(content)
         match = SIGNATURE_RX.match(content)
-        return MultiGit::Handle.new(match[1],match[2]), Time.at(match[3].to_i).localtime(match[4]+':'+match[5])
+        return MultiGit::Handle.new(match[1],match[2]), Time.at(match[3].to_i).getlocal(match[4]+':'+match[5])
       end
 
     end
