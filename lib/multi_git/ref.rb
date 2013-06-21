@@ -157,7 +157,6 @@ module MultiGit
       def destroy!
         release_lock(@lock)
       end
-
     end
 
     # @api developer
@@ -197,9 +196,17 @@ module MultiGit
           release_lock( lock ) if lock
         end
       end
+    end
 
-    private
-
+    class RecklessUpdater < Updater
+      def update( new )
+        pu = PessimisticFileUpdater.new( ref )
+        begin
+          pu.update( new )
+        ensure
+          pu.destroy!
+        end
+      end
     end
 
     extend MultiGit::Utils::AbstractMethods
@@ -289,22 +296,31 @@ module MultiGit
     # The new target of this reference is the result of the passed block. If
     # you return nil, the ref will be deleted.
     #
-    # By using the lock param you can control the isolation:
+    # @overload update( lock = :optimistic )
+    #   By using the lock param you can control the isolation:
+    #  
+    #   [:reckless] Updates the reference the hard way. Only locks enough 
+    #               to ensure the integrity of the repository and simply 
+    #               overwrites concurrent changes.
+    #   [:optimistic] If the target is altered during the execution of the
+    #                 block, a {MultiGit::Error::ConcurrentRefUpdate} is 
+    #                 raised. This is the default as it holds hard locks 
+    #                 only as long as necessary while providing pointfull 
+    #                 isolation.
+    #   [:pessimistic] A lock is acquired and held during the execution of the
+    #                  block. Concurrent updates will wait or fail. This is 
+    #                  good if the block is not retry-able or very small.
     #
-    # [:optimistic] If the target is altered during the execution of the
-    #               block, a {MultiGit::Error::ConcurrentRefUpdate} is 
-    #               raised. This is the default as it holds hard locks 
-    #               only as long as necessary while providing pointfull 
-    #               isolation.
-    # [:pessimistic] A lock is acquired and held during the execution of the
-    #                block. Concurrent updates will wait or fail. This is 
-    #                good if the block is not retry-able or very small.
+    #   @param lock [:reckless, :optimistic, :pessimistic]
+    #   @yield [current_target] Yields the current target and expects the block to return the new target
+    #   @yieldparam current_target [MultiGit::Ref, MultiGit::Object, nil] current target
+    #   @yieldreturn [MultiGit::Ref, MultiGit::Object, nil] new target
+    #   @return [MultiGit::Ref] The altered ref
     #
-    # @param lock [:optimistic, :pessimistic]
-    # @yield [current_target] Yields the current target and expects the block to return the new target
-    # @yieldparam current_target [MultiGit::Ref, MultiGit::Object, nil] current target
-    # @yieldreturn [MultiGit::Ref, MultiGit::Object, nil] new target
-    # @return [MultiGit::Ref] The altered ref
+    # @overload update( value )
+    #
+    #   @param value [Commit, Ref, nil] new target for this ref
+    #   @return [MultiGit::Ref] The altered ref
     #
     # @example
     #  # setup:
@@ -324,24 +340,28 @@ module MultiGit
     #  repository.ref('refs/heads/master').target #=> eql commit
     #  # teardown:
     #  `rm -rf #{dir}`
-    def update( lock = :optimistic )
-      updater_class = case lock
-                when :optimistic  then optimistic_updater
-                when :pessimistic then pessimistic_updater
-                end
-      begin
+    def update( value_or_lock = :optimistic )
+      if block_given?
+        updater_class = case value_or_lock
+                  when :optimistic  then optimistic_updater
+                  when :pessimistic then pessimistic_updater
+                  when :reckless    then reckless_updater
+                  end
         updater = updater_class.new(self)
         updater.update( yield(updater.target) )
-        return reload
-      ensure
-        updater.destroy! if updater
+      else
+        updater = pessimistic_updater.new(self)
+        updater.update( value_or_lock )
       end
+      return reload
+    ensure
+      updater.destroy! if updater
     end
 
     # Shorthand for deleting this ref.
     # @return [Ref]
     def delete
-      update(:pessimistic){ nil }
+      update( nil )
     end
 
     # Shorthand method to directly create a commit and update the given ref.
@@ -404,6 +424,10 @@ module MultiGit
 
     def pessimistic_updater
       PessimisticFileUpdater
+    end
+
+    def reckless_updater
+      RecklessUpdater
     end
 
   end

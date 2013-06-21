@@ -704,6 +704,12 @@ env -i git update-ref refs/heads/master $COID 2>&1`
       head.reload.target.oid.should == '553bfb16f88e60e71f527f91433aa7282066a332'
     end
 
+    it "can update refs directly" do
+      head = repository.ref('refs/heads/master')
+      head.update( commit_builder head.target )
+      repository.ref('refs/heads/master').target.oid.should == 'a00f6588c95cf264fb946480494c418371105a26'
+    end
+
     it "can lock refs optimistic" do
       head = repository.ref('refs/heads/master')
       head.update do |target|
@@ -737,6 +743,15 @@ env -i git update-ref refs/heads/master $COID 2>&1`
         $?.exitstatus.should == 128
         commit_builder target
       end
+    end
+
+    it "just overwrites refs with reckless update" do
+      head = repository.ref('refs/heads/master')
+      head.update(:reckless) do |target|
+        update_master
+        commit_builder target
+      end
+      repository.ref('refs/heads/master').target.oid.should == 'a00f6588c95cf264fb946480494c418371105a26'
     end
 
     it "delete refs optimistic" do

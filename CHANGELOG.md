@@ -2,6 +2,7 @@
 
 * [FEATURE] basic remotes support
 * [FEATURE] Repository#config
+* [ENHANCEMENT] Ref#update is now more flexible (reckless updating, updating without block)
 * [ENHANCEMENT] Tree#glob now supports DOTMATCH
 * [ENHANCEMENT] Repository#head method to get the current HEAD
 * [BUG] Removed Tree#path ( did not made much sense since the path is not known )

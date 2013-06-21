@@ -78,7 +78,6 @@ TODO ( loosely by priority )
 -----------------------------
 
 - Feature: Config
-- Feature: Ref#update(:reckless)
 - Efficiency: efficient Ref#resolve+update
 - Feature: Remotes/Clone/Push/Fetch ( blocked by config )
 - Code Quality: Unify memoizing
