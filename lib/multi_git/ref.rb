@@ -261,12 +261,6 @@ module MultiGit
 
     alias / []
 
-    def []=(path, options = {}, value)
-      resolve.update(options.fetch(:lock, :pessimistic) ) do |commit|
-        
-      end
-    end
-
     # @!endgroup
 
     # @!group Utility methods
