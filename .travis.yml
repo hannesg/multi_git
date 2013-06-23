@@ -5,7 +5,15 @@ rvm:
   - rbx-19mode
   - ruby-head
   - jruby-head
+gemfile:
+  - Gemfile
+  - Gemfile.edge
 matrix:
+  exclude:
+    - gemfile: Gemfile
+      rvm: jruby-head
+    - gemfile: Gemfile
+      rvm: jruby-19mode
   allow_failures:
     - rvm: jruby-head
     - rvm: ruby-head
