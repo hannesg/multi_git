@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    multi_git (0.0.1.beta1)
+    multi_git (0.0.1.rc1)
 
 GEM
   remote: https://rubygems.org/
