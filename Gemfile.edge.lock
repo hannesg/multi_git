@@ -1,6 +1,6 @@
 GIT
   remote: git://github.com/libgit2/rugged.git
-  revision: a76f345e97d67beeb1fb04e92fbdac5b49edce87
+  revision: 47ddd609206d7ca9edf2d4670d79c1f60d8f587e
   branch: development
   submodules: true
   specs:
@@ -25,8 +25,8 @@ GEM
     jbundler (0.4.3)
       maven-tools (~> 0.32.1)
       ruby-maven (~> 3.0.4)
-    kramdown (1.0.2)
-    maven-tools (0.32.4)
+    kramdown (1.1.0)
+    maven-tools (0.32.5)
     mime-types (1.23)
     multi_json (1.7.7)
     rake (10.1.0)
@@ -48,7 +48,7 @@ GEM
       simplecov-html (~> 0.7.1)
     simplecov-html (0.7.1)
     thor (0.18.1)
-    yard (0.8.6.1)
+    yard (0.8.6.2)
 
 PLATFORMS
   java
