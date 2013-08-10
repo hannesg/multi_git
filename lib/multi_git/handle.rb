@@ -27,7 +27,7 @@ module MultiGit
       end
     end
 
-    DEFAULT = parse("MultiGit #{MultiGit::VERSION} <#{MultiGit::VERSION}@multi.git>")
+    DEFAULT = parse("MultiGit <default@multi.git>")
 
   end
 end
