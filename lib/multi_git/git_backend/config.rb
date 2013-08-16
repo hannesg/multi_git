@@ -27,6 +27,19 @@ module MultiGit
         end
       end
 
+      def set( section, subsection, key, value )
+        s = schema_for(section, subsection, key)
+        qk = qualified_key(section, subsection, key)
+        if value.kind_of? Array
+          @cmd['config', '--unset-all', qk]
+          value.each do | r |
+            @cmd['config', qk, :add, value.to_s]
+          end
+        else
+          @cmd['config', qk, value.to_s]
+        end
+      end
+
       def each_explicit_key
         return to_enum(:each_explicit_key) unless block_given?
         seen = Set.new

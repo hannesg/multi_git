@@ -25,7 +25,7 @@ describe '#config', config: true do
     end
 
     it "uses the default for a simple non-existing key" do
-      # lets hope git will never have a priates config ^^
+      # lets hope git will never have a pirates config ^^
       conf = subject.with_schema(
         MultiGit::Config::Schema.build do
           section "pirates" do
@@ -64,6 +64,19 @@ describe '#config', config: true do
         subject['key']
       }.to raise_error(ArgumentError, /Expected the qualified key/)
     end
+
+    it "supports writing hash-access with a qualified key" do
+      expect{
+        subject['core.filemode'] = false
+      }.to change{ subject['core','filemode'] }.from(true).to(false)
+    end
+
+    it "supports writing hash-access with section and key" do
+      expect{
+        subject['core','filemode'] = false
+      }.to change{ subject['core.filemode'] }.from(true).to(false)
+    end
+
   end
 
   context 'with a repository containing a list-option' do
@@ -92,6 +105,12 @@ describe '#config', config: true do
         [['core',nil,'bare'],true],
         [['remote', 'origin', 'url'], ['foo@bar.com:baz.git', 'baz@foo.com:bar.git']]
       )
+    end
+
+    it "supports setting it to an empty array" do
+      expect{
+        subject['remote','origin','url'] = []
+      }.to change{ subject['remote', 'origin', 'url'] }.from(['foo@bar.com:baz.git', 'baz@foo.com:bar.git']).to([])
     end
   end
 
@@ -151,5 +170,6 @@ describe "Config#section", :section => true do
     end
 
   end
+
 end
 

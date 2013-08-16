@@ -28,6 +28,14 @@ module MultiGit
         end
       end
 
+      def set(section, subsection, name, value)
+        if value.kind_of? Array
+          java_config.setStringList(section, subsection, name, value.map(&:to_s))
+        else
+          java_config.setString(section, subsection, name, value.to_s)
+        end
+      end
+
       def each_explicit_key
         return to_enum(:each_explicit_key) unless block_given?
         java_config.sections.map do |sec|

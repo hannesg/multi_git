@@ -27,6 +27,17 @@ module MultiGit
         end
       end
 
+      def set(section, subsection, key, value)
+        qk = qualified_key(section, subsection, key)
+        if value.kind_of? Array
+          raise Error::NotYetImplemented, "Rugged lacks support for writing array values to config"
+        end
+        @rugged_config.delete(qk)
+        @config[ [section, subsection, key] ] = Array(value).map(&:to_s)
+        Array(value).each do |v|
+          @rugged_config[qk]=v
+        end
+      end
       def each_explicit_key
         return to_enum(:each_explicit_key) unless block_given?
         @config.each_key do |k|

@@ -102,9 +102,24 @@ module MultiGit
       end
     end
 
+    def []=( *args )
+      case( args.size )
+      when 4 then set( *args )
+      when 3 then set( args[0], nil, args[1], args[2] )
+      when 2 then set( *split_key(args[0]), args[1] )
+      else
+        raise ArgumentError,
+          "wrong number of arguments (#{args.size} for 2..4)"
+      end
+    end
+
     # @!method get( section, subsection, key)
     #   @api private
     abstract :get
+
+    # @!method set( section, subsection, key, value)
+    #   @api private
+    abstract :set
 
     # @!method each_explicit_key
     #   @yield [section, subsection, key]
