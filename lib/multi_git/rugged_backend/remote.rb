@@ -42,6 +42,10 @@ module MultiGit
 
       end
 
+    def save( name )
+      rugged_remote.rename!( name )
+    end
+
     if Rugged::Remote.instance_methods.include? :clear_refspecs
       def fetch(*refspecs)
         rs = parse_fetch_refspec(*refspecs)
@@ -58,6 +62,16 @@ module MultiGit
     else
       def fetch(*_)
         raise Error::NotYetImplemented, 'This rugged version doesn\'t seem to support fetching. You may want to install from HEAD.'
+      end
+    end
+
+    def push(*refspecs)
+      rs = parse_push_refspec(*refspecs).map(&:to_s)
+      # rugged cannot push to multiple locations currently
+      push_urls.each do | pu |
+        cl = Rugged::Remote.new(repository.__backend__, pu)
+        cl.clear_refspecs
+        cl.push(rs)
       end
     end
 

@@ -52,6 +52,16 @@ module MultiGit
         use_transport( FETCH ) do | transport |
           transport.fetch( transport_monitor, rs )
         end
+        self
+      end
+
+      def push( *refspecs )
+        rs = parse_push_refspec(*refspecs).map{|refspec| Java::OrgEclipseJgitTransport::RefSpec.new(refspec.to_s) }
+        use_transport( PUSH ) do | transport |
+          toPush = transport.findRemoteRefUpdatesFor( rs )
+          transport.push( transport_monitor, toPush )
+        end
+        self
       end
 
     private

@@ -19,10 +19,12 @@ module MultiGit
 
     # @!method fetch( *refspecs )
     #   @param refspecs [RefSpec, String, Range, Hash, ...]
+    #   @return self
     abstract :fetch
 
     # @!method push( *refspecs )
     #   @param refspecs [RefSpec, String, Range, Hash, ...]
+    #   @return self
     abstract :push
 
     # @!method save( name )
@@ -45,7 +47,7 @@ module MultiGit
 
     protected
 
-      def refspec_parser
+      def fetch_refspec_parser
         RefSpec::Parser.new("refs/remotes/#{name}/")
       end
 
@@ -54,12 +56,21 @@ module MultiGit
   protected
 
     def parse_fetch_refspec(*refspecs)
-      refspec_parser[*refspecs]
+      fetch_refspec_parser[*refspecs]
     end
 
-    def refspec_parser
+    def parse_push_refspec(*refspecs)
+      push_refspec_parser[*refspecs]
+    end
+
+    def fetch_refspec_parser
       RefSpec::Parser.new("refs/remotes//")
     end
+
+    def push_refspec_parser
+      RefSpec::Parser.new('refs/heads/')
+    end
+
 
   end
 

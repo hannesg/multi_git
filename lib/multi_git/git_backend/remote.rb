@@ -40,8 +40,20 @@ module MultiGit
       def fetch(*refspecs)
         rs = parse_fetch_refspec(*refspecs)
         repository.__backend__['fetch',fetch_urls.first,*rs.map(&:to_s)]
+        return self
       end
 
+      def push(*refspecs)
+        rs = parse_push_refspec(*refspecs)
+        repository.__backend__['push',*push_urls,*rs.map(&:to_s)]
+        return self
+      end
+
+      def save( name )
+        begin
+        rescue Cmd::Error::ExitCode128
+        end
+      end
     end
   end
 end
