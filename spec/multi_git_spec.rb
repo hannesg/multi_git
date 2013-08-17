@@ -23,7 +23,7 @@ describe MultiGit do
   end
 
   describe :rugged do
-    if RUBY_ENGINE == 'jruby'
+    if (RUBY_ENGINE == 'jruby') || (RUBY_VERSION < "1.9.3")
       it "is not available" do
         MultiGit::RuggedBackend.should_not be_available
       end

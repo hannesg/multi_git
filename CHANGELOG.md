@@ -1,6 +1,7 @@
 # 0.0.1.rc1
 
 * [FEATURE] Pushing to a remote now works
+* [CHANGE] Rugged backend is not supported on ruby < 1.9.3 anymore because rugged itself ceased support
 
 # 0.0.1.beta1
 

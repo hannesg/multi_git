@@ -60,6 +60,10 @@ module MultiGit
         Utils.file_loadeable?('rugged.rb')
     end
 
+    check "Ruby version >= 1.9.3" do
+      RUBY_VERSION >= "1.9.3"
+    end
+
     def self.load!
       require 'multi_git/rugged_backend'
     end
