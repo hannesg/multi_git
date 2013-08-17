@@ -1,5 +1,7 @@
 # 0.0.1.rc1
 
+* [FEATURE] Pushing to a remote now works
+
 # 0.0.1.beta1
 
 * [FEATURE] basic remotes support

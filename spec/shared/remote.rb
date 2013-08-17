@@ -129,6 +129,13 @@ describe '#remote#push', remote: true do
       remote_repository.branch('master').target.oid.should == '20fde9a8ac86cd9e35b147b3f1460798074d0c57'
     end
 
+    it "can push stuff to a certain branch" do
+      expect{
+        remote.push('master:retsam')
+        remote_repository.branch('retsam').target.oid.should == '20fde9a8ac86cd9e35b147b3f1460798074d0c57'
+      }.not_to change{ remote_repository.branch('master').target }
+    end
+
   end
 
   context 'by existing name' do
@@ -144,6 +151,12 @@ describe '#remote#push', remote: true do
       remote_repository.branch('master').target.oid.should == '20fde9a8ac86cd9e35b147b3f1460798074d0c57'
     end
 
-  end
+    it "can push stuff to a certain branch" do
+      expect{
+        remote.push('master:retsam')
+        remote_repository.branch('retsam').target.oid.should == '20fde9a8ac86cd9e35b147b3f1460798074d0c57'
+      }.not_to change{ remote_repository.branch('master').target }
+    end
 
+  end
 end
