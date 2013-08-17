@@ -1,6 +1,9 @@
-# 0.0.1.rc1
+# 0.0.1
 
 * [FEATURE] basic support for writing config values
+
+# 0.0.1.rc1
+
 * [FEATURE] Pushing to a remote now works
 * [ENHANCEMENT] Got object/builder equality right
 * [FEATURE] Added Tree::Builder#changed? method to test for changes
