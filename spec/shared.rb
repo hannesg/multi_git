@@ -886,6 +886,5 @@ env -i git update-ref refs/heads/master $COID 2>&1`
 
   embrace 'shared/config.rb'
   embrace 'shared/remote.rb'
-  embrace 'shared/tree_builder.rb'
 
 end
