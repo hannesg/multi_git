@@ -11,6 +11,8 @@ module MultiGit
     include Tree::Base
 
     attr :entries
+    attr :from
+    private :from
 
     def initialize(from = nil, &block)
       @entries = {}
@@ -181,6 +183,36 @@ module MultiGit
 
       def to_builder
         self
+      end
+
+      # Checks if the file at the given path was changed.
+      #
+      # @param [String] path
+      #
+      # @example from scratch
+      #   builder = MultiGit::Tree::Builder.new
+      #   builder.file('a_file','some content')
+      #   builder.changed? 'a_file' #=> eq true
+      #   builder.changed? 'another_file' #=> eq false
+      def changed?( path )
+        begin
+          new = traverse(path)
+        rescue Error::EntryDoesNotExist
+          return false unless from
+          begin
+            old = from.traverse(path)
+          rescue Error::EntryDoesNotExist
+            return false
+          end
+          return true
+        end
+        return true unless from
+        begin
+          old = from.traverse(path)
+        rescue Error::EntryDoesNotExist
+          return true
+        end
+        return new != old
       end
 
     end

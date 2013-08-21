@@ -82,4 +82,71 @@ describe MultiGit::Tree::Builder, :tree_builder => true do
     bld2.names.should == ['foo']
   end
 
+  describe '#changed?' do
+
+    context 'with an emtpy from-tree' do
+      subject do
+        MultiGit::Tree::Builder.new do
+          file 'a', 'x'
+          directory 'b' do
+            file 'c', 'y'
+          end
+        end
+      end
+
+      it 'reports a new file as changed' do
+        expect(subject.changed?('a')).to be_true
+      end
+
+      it 'reports a new dir as changed' do
+        expect(subject.changed?('b')).to be_true
+      end
+
+      it 'reports a new file in a dir as changed' do
+        expect(subject.changed?('b/c')).to be_true
+      end
+
+      it 'doesn\'t report a non-existing file as changed' do
+        expect(subject.changed?('d')).to be_false
+      end
+    end
+
+    context 'with a non-emtpy from-tree' do
+      subject do
+        from = MultiGit::Tree::Builder.new do
+          file 'a', 'x'
+          directory 'b' do
+            file 'c', 'y'
+          end
+        end
+        MultiGit::Tree::Builder.new(from) do
+          file 'p','z'
+          delete 'a'
+        end
+      end
+
+      it 'reports a new file as changed' do
+        expect(subject.changed?('p')).to be_true
+      end
+
+      it 'reports a deleted file as changed' do
+        expect(subject.changed?('a')).to be_true
+      end
+
+      it 'doesn\'t report am unchanged file as changed' do
+        expect(subject.changed?('b/c')).to be_false
+      end
+
+      it 'doesn\'t report am unchanged dir as changed' do
+        expect(subject.changed?('b')).to be_false
+      end
+
+      it 'doesn\'t report a non-existing file as changed' do
+        expect(subject.changed?('d')).to be_false
+      end
+    end
+
+
+  end
+
 end

@@ -1,6 +1,8 @@
 # 0.0.1.rc1
 
 * [FEATURE] Pushing to a remote now works
+* [ENHANCEMENT] Got object/builder equality right
+* [FEATURE] Added Tree::Builder#changed? method to test for changes
 * [CHANGE] Rugged backend is not supported on ruby < 1.9.3 anymore because rugged itself ceased support
 
 # 0.0.1.beta1

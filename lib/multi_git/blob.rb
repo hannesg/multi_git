@@ -1,6 +1,7 @@
 require 'stringio'
 require 'multi_git/object'
 require 'multi_git/builder'
+require 'digest/sha1'
 module MultiGit
   module Blob
 
@@ -8,6 +9,17 @@ module MultiGit
       def type
         :blob
       end
+
+      def ==(other)
+        return false unless other.respond_to? :oid
+        return oid == other.oid
+      end
+
+      def inspect
+        ['<',self.class,' ',oid,'>'].join
+      end
+
+      alias to_s inspect
     end
 
     class Builder < StringIO
@@ -38,6 +50,13 @@ module MultiGit
       def >>(repo)
         rewind
         return repo.write(read)
+      end
+
+      def oid
+        dig = Digest::SHA1.new
+        dig << "blob #{size}\0"
+        dig << content
+        return dig.hexdigest
       end
     end
 

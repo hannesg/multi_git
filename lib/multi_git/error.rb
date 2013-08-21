@@ -26,6 +26,12 @@ module MultiGit
       include Error
     end
 
+    class EntryDoesNotExist < InvalidTraversal
+    end
+
+    class NotADirectory < InvalidTraversal
+    end
+
     class CyclicSymlink < Exception
       include Error
     end

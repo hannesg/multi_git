@@ -29,7 +29,7 @@ module MultiGit
     include Base
     extend Forwardable
 
-    delegate (Blob.instance_methods - Object.instance_methods) => :object
+    delegate (Blob.instance_methods - self.instance_methods) => :object
   end
 
 end

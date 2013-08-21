@@ -109,6 +109,16 @@ shared_examples "an empty repository" do
     result.oid.should ==  'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
   end
 
+  it "a File::Builder compares equal to the file it created" do
+    fb = MultiGit::File::Builder.new(nil, "a", "Blobs")
+    expect( repository.write(fb) ).to eq fb
+  end
+
+  it "a File::Builder compares equal to the file it created ( other direction )" do
+    fb = MultiGit::File::Builder.new(nil, "a", "Blobs")
+    expect( fb ).to eq repository.write(fb)
+  end
+
   it "can add a Tree::Builder" do
     tb = MultiGit::Tree::Builder.new do
       file "a", "b"
@@ -382,7 +392,7 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
       end
 
       it "sets the correct parent" do
-        (tree / 'foo').parent.should == tree
+        expect( (tree / 'foo').parent ).to be tree
       end
 
       it "allows accessing nested entries with a slash" do
@@ -394,7 +404,7 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
       end
 
       it "traverses to the parent tree" do
-        (tree / 'foo' / '..').should == tree
+        expect(tree / 'foo' / '..').to be tree
       end
 
       it "raises an error if the parent tree is unknown" do
@@ -876,5 +886,6 @@ env -i git update-ref refs/heads/master $COID 2>&1`
 
   embrace 'shared/config.rb'
   embrace 'shared/remote.rb'
+  embrace 'shared/tree_builder.rb'
 
 end

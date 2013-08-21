@@ -60,10 +60,10 @@ module MultiGit
             # do nothing
           else
             if !current.respond_to? :entry
-              raise MultiGit::Error::InvalidTraversal, "Can't traverse to #{path} from #{self.inspect}: #{current.inspect} doesn't contain an entry named #{part.inspect}"
+              raise MultiGit::Error::NotADirectory, "Can't traverse to #{path} from #{self.inspect}: #{current.inspect} doesn't contain an entry named #{part.inspect}"
             end
             entry = current.entry(part)
-            raise MultiGit::Error::InvalidTraversal, "Can't traverse to #{path} from #{self.inspect}: #{current.inspect} doesn't contain an entry named #{part.inspect}" unless entry
+            raise MultiGit::Error::EntryDoesNotExist, "Can't traverse to #{path} from #{self.inspect}: #{current.inspect} doesn't contain an entry named #{part.inspect}" unless entry
             # may be a symlink
             if entry.respond_to? :target
               # this is a symlink
@@ -168,6 +168,11 @@ module MultiGit
       # @return [Array<String>] names of all entries
       def names
         entries.keys
+      end
+
+      def ==( other )
+        return false unless other.respond_to? :entries
+        entries == other.entries
       end
 
     end
