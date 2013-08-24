@@ -12,6 +12,8 @@ Gem::Specification.new do |gem|
   gem.email    = 'hannes.georg@googlemail.com'
   gem.homepage = 'https://github.com/hannesg/multi_git'
 
+  gem.license  = 'GPL-3'
+
   # ensure the gem is built out of versioned files
   gem.files = Dir['lib/**/*'] & `git ls-files -z`.split("\0")
 
