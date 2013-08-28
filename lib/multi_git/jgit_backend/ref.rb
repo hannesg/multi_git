@@ -8,8 +8,10 @@ module MultiGit
       # HACK!
       # @api private
       # @visibility private
-      class Java::OrgEclipseJgitStorageFile::RefDirectoryUpdate
-        public :tryLock, :unlock, :doUpdate, :doDelete
+      if defined? Java::OrgEclipseJgitStorageFile::RefDirectoryUpdate
+        class Java::OrgEclipseJgitStorageFile::RefDirectoryUpdate
+          public :tryLock, :unlock, :doUpdate, :doDelete
+        end
       end
 
       # @api developer

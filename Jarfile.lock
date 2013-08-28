@@ -1,2 +1,3 @@
-org.eclipse.jgit:org.eclipse.jgit:jar:2.3.1.201302201838-r
+org.eclipse.jgit:org.eclipse.jgit:jar:3.0.0.201306101825-r
 com.jcraft:jsch:jar:0.1.46
+com.googlecode.javaewah:JavaEWAH:jar:0.5.6
