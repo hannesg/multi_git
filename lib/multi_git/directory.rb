@@ -75,6 +75,23 @@ module MultiGit
         ]
       end
 
+      extend Forwardable
+
+      delegate (Tree::Builder.instance_methods - self.instance_methods) => :object
+
+      def from
+        defined?(@from) ? @from : @from = make_from
+      end
+
+    private
+
+      def make_from
+        if object.from.nil?
+          nil
+        else
+          Directory::Builder.new(parent, name, object.from)
+        end
+      end
     end
 
     include Base

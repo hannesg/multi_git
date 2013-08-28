@@ -12,7 +12,6 @@ module MultiGit
 
     attr :entries
     attr :from
-    private :from
 
     def initialize(from = nil, &block)
       @entries = {}

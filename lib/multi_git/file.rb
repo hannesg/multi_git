@@ -24,6 +24,10 @@ module MultiGit
         end
         Blob::Builder.new(*args)
       end
+
+      extend Forwardable
+
+      delegate (Blob::Builder.instance_methods - self.instance_methods) => :object
     end
 
     include Base
