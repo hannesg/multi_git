@@ -61,8 +61,9 @@ module MultiGit
       def [](*args)
         forced = false
         if args.last.kind_of? Hash
-          options = args.last
-          forced = options.fetch(:forced, false)
+          options = args.pop.dup
+          forced = options.delete(:forced){ false }
+          args << options
         end
         args.collect_concat do |arg|
           if arg.kind_of? RefSpec
