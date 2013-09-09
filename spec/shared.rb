@@ -134,6 +134,21 @@ shared_examples "an empty repository" do
     result.oid.should ==  'b490aa5179132fe8ea44df539cf8ede23d9cc5e2'
   end
 
+  it "can add a Tree::Builder with executeables" do
+    tb = MultiGit::Tree::Builder.new do
+      executeable "a", "b"
+      directory "c" do
+        executeable "d", "e"
+      end
+    end
+    result = repository.write(tb)
+    result.should be_a(MultiGit::Tree)
+    result['a'].should be_a(MultiGit::Executeable)
+    result['c'].should be_a(MultiGit::Directory)
+    result['c/d'].should be_a(MultiGit::Executeable)
+    result.oid.should ==  'd65bc69b6facdb9c389c3b6dc1c2a0d2115ad076'
+  end
+
   it "can read a previously added blob" do
     inserted = repository.write("Blobs", :blob)
     object = repository.read(inserted.oid)

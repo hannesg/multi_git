@@ -164,6 +164,12 @@ module MultiGit
         }
       end
 
+      def executeable(name, content = nil, &block)
+        set(name){|parent, name|
+          Executeable::Builder.new(parent, name, content, &block)
+        }
+      end
+
       def directory(name, &block)
         set(name){|parent, name|
           Directory::Builder.new(parent, name, &block)
