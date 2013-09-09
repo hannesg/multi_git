@@ -893,6 +893,25 @@ env -i git update-ref refs/heads/master $COID 2>&1`
 
   end
 
+  context 'executeables', executeable:true do
+
+     before(:each) do
+      `mkdir -p #{tempdir}`
+      build = MultiGit::Commit::Builder.new do
+        tree.executeable 'foo', 'bar'
+      end
+      commit = repository << build
+      repository.branch('master').update( commit )
+    end
+
+    let(:repository){ subject.open(tempdir, init: true) }
+
+    it 'reads the executeable correctly' do
+      commit = repository.branch('master').target
+      commit.tree['foo'].should be_a MultiGit::Executeable
+    end
+
+  end
 
   def self.embrace(file)
     file = File.expand_path(file, File.dirname(__FILE__))

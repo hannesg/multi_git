@@ -30,6 +30,10 @@ describe MultiGit::RefSpec do
       MultiGit::RefSpec.parse('refs/heads/master' => 'refs/remotes/origin/master').should == MultiGit::RefSpec.new('refs/heads/master','refs/remotes/origin/master')
     end
 
+    it 'works for hashes with :forced' do
+      MultiGit::RefSpec.parse('refs/heads/master' => 'refs/remotes/origin/master', forced: true).should == MultiGit::RefSpec.new('refs/heads/master','refs/remotes/origin/master', true)
+    end
+
   end
 
 end

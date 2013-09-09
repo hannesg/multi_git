@@ -49,19 +49,30 @@ module MultiGit
         @to_base = to_base
       end
 
-      # 
-      # @param args [RefSpec, String, Hash, Range, ...]
-      # @return [Array<RefSpec>]
+      # @overload [](*args)
+      #   @param args [RefSpec, String, Hash, Range, ...]
+      #   @return [Array<RefSpec>]
+      #
+      # @overload [](*args, options)
+      #   @param args [RefSpec, String, Hash, Range, ...]
+      #   @param options [Hash]
+      #   @option options [Boolean] :forced (false)
+      #   @return [Array<RefSpec>]
       def [](*args)
+        forced = false
+        if args.last.kind_of? Hash
+          options = args.last
+          forced = options.fetch(:forced, false)
+        end
         args.collect_concat do |arg|
           if arg.kind_of? RefSpec
             [arg]
           elsif arg.kind_of? String
-            [parse_string(arg)]
+            [parse_string(arg, forced)]
           elsif arg.kind_of? Hash
-            arg.map{|k,v| parse_pair(k,v) }
+            arg.map{|k,v| parse_pair(k,v, forced) }
           elsif arg.kind_of? Range
-            [parse_pair(arg.begin, arg.end)]
+            [parse_pair(arg.begin, arg.end, forced)]
           else
             raise ArgumentError, "Expected a String, Hash or Range. Got #{arg.inspect}"
           end
@@ -69,7 +80,7 @@ module MultiGit
       end
 
     private
-      def parse_string(string)
+      def parse_string(string, forced)
         if ma = REF.match(string)
           if ma[2]
             from = normalize(from_base, ma[2])
@@ -79,12 +90,12 @@ module MultiGit
           else
             to  = normalize(to_base, ma[2])
           end
-          RefSpec.new( from, to, ma[1] == '+' )
+          RefSpec.new( from, to, forced || (ma[1] == '+') )
         end
       end
 
-      def parse_pair(a,b)
-        RefSpec.new( normalize(from_base,a.to_s), normalize(to_base,b.to_s) )
+      def parse_pair(a,b, forced)
+        RefSpec.new( normalize(from_base,a.to_s), normalize(to_base,b.to_s), forced )
       end
 
       def normalize(base, name)
