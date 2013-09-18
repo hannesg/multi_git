@@ -73,28 +73,81 @@ module MultiGit
     end
 
     # @api developer
+    module Locking
+      def lock_file_path
+        ::File.join(repository.git_dir, name + '.lock')
+      end
+
+      def acquire_lock
+        f = ::File.open(lock_file_path, ::File::CREAT | ::File::RDWR | ::File::EXCL )
+        f.flock(::File::LOCK_EX)
+        return f
+      end
+
+      def release_lock(lock)
+        ::File.unlink(lock.path)
+        lock.flock(::File::LOCK_UN)
+        lock.close
+      end
+
+      def ensure_dir!
+        FileUtils.mkdir_p(::File.dirname(lock_file_path))
+      end
+
+      def file_path
+        ::File.join(repository.git_dir, name)
+      end
+    end
+
+    # @api developer
     class FileUpdater < Updater
 
     protected
 
-      def ensure_dir!
-        FileUtils.mkdir_p(::File.dirname(file_path))
-      end
+      include Locking
 
-      def open_file(exists)
+      def open_file!
         mode = ::File::WRONLY | ::File::TRUNC
-        if !exists
+        3.times do
           begin
             return ::File.open(file_path, mode | ::File::CREAT)
           rescue Errno::EEXIST
-            raise Error::ConcurrentRefUpdate
           end
-        else
           begin
             return ::File.open(file_path, mode)
           rescue Errno::ENOENT
-            raise Error::ConcurrentRefUpdate
           end
+        end
+        raise "Unable to open ref file for update"
+      end
+
+      def update!( nx )
+        str = object_to_ref_str(nx)
+        begin
+          file = open_file!
+          file.puts(str)
+          file.flush
+        ensure
+          file.close if file
+        end
+      end
+
+      def remove!
+        begin
+          ::File.unlink(file_path)
+        rescue Errno::ENOENT
+        end
+        begin
+          inf   = ::File.open(packed_ref_path, ::File::RDONLY)
+          outf  = ::File.open(packed_ref_path, ::File::WRONLY | ::File::TRUNC)
+          nb = "#{name}\n"
+          inf.each_line do |line|
+            next if line.end_with?(nb)
+            outf.write(line)
+          end
+          inf.close
+          outf.close
+        rescue Errno::ENOENT
         end
       end
 
@@ -106,96 +159,68 @@ module MultiGit
         end
       end
 
-      def file_path
-        ::File.join(repository.git_dir, name)
+      def packed_ref_path
+        ::File.join(repository.git_dir, 'packed-refs')
       end
-
-      def lock_file_path
-        ::File.join(repository.git_dir, name + '.lock')
-      end
-
-      def acquire_lock
-        ::File.open(lock_file_path, ::File::CREAT | ::File::RDWR | ::File::EXCL )
-      end
-
-      def release_lock(lock)
-        ::File.unlink(lock.path)
-        lock.flock(::File::LOCK_UN)
-      end
-
     end
 
     # @api developer
-    class PessimisticFileUpdater < FileUpdater
+    module PessimisticUpdater
 
       def initialize(*_)
         super
         ensure_dir!
         @lock = acquire_lock
         # safe now
-        @ref = @ref.reload
+        self.ref = ref.reload
       end
 
       def update(new)
-        old = target
         nx = super
         if nx
-          str = object_to_ref_str(nx)
-          begin
-            file = open_file(!old.nil?)
-            file.puts(str)
-            file.flush
-          ensure
-            file.close if file
-          end
+          update!(nx)
         else
-          ::File.unlink(file_path)
+          remove!
         end
         return nx
       end
 
       def destroy!
-        release_lock(@lock)
+        release_lock(@lock) if @lock
       end
     end
 
     # @api developer
-    class OptimisticFileUpdater < FileUpdater
+    module OptimisticUpdater
 
       def update(new)
         ensure_dir!
+        lock = acquire_lock
         begin
-          lock = acquire_lock
-          if ::File.exists?(file_path)
-            content = ::File.read(file_path).chomp
-            if content != object_to_ref_str(target)
-              raise Error::ConcurrentRefUpdate
-            end
-          elsif !target.nil?
+          current = ref.reload.target
+          if current != target
             raise Error::ConcurrentRefUpdate
           end
           old = target
           nx = super
           if nx.nil?
-            if !old
-              return nx
-            end
-            ::File.unlink(file_path)
+            remove!
           else
-            begin
-              file = open_file( !old.nil? )
-              str = object_to_ref_str(nx)
-              file.puts( str )
-              file.flush
-            ensure
-              file.close if file
-            end
+            update!(nx)
           end
           return nx
         ensure
           release_lock( lock ) if lock
         end
       end
+    end
+
+    class OptimisticFileUpdater < FileUpdater
+      include OptimisticUpdater
+    end
+
+    class PessimisticFileUpdater < FileUpdater
+      include PessimisticUpdater
     end
 
     class RecklessUpdater < Updater

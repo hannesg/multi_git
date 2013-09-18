@@ -17,6 +17,8 @@ module MultiGit
 
       SYMBOLIC_REF_LINE = /\Aref: ([a-z0-9_]+(?:\/[a-z0-9_]+)*)\Z/i.freeze
       OID_REF_LINE = /\A(\h{40})\Z/i.freeze
+      PACKED_REFS = 'packed-refs'.freeze
+      PACKED_REF_LINE = /\A(\h{40}) (\S+)\Z/
 
       def read!
         begin
@@ -30,6 +32,19 @@ module MultiGit
           end
         rescue Errno::ENOENT
           # doesn't exists
+          # query packed refs
+          begin
+            packed = IO.read(::File.join(repository.git_dir, PACKED_REFS))
+            packed.each_line do |line|
+              if line =~ PACKED_REF_LINE
+                if $2 == name
+                  @target = repository.read($1)
+                  break
+                end
+              end
+            end
+          rescue Errno::ENOENT
+          end
         end
       end
     end

@@ -1,7 +1,7 @@
 require 'bundler/setup'
 require 'simplecov'
 require 'coveralls'
-
+=begin
 SimpleCov.start do
   formatter SimpleCov::Formatter::MultiFormatter[
     SimpleCov::Formatter::HTMLFormatter,
@@ -10,7 +10,7 @@ SimpleCov.start do
   add_filter "/spec"
   maximum_coverage_drop 5
 end
-
+=end
 Bundler.require(:default, :development)
 
 class Something

@@ -30,10 +30,49 @@ module MultiGit
                     end
       end
 
-    private
+      # @api private
+      # @visibility private
       attr :rugged_ref
+
+    private
+      class Updater < MultiGit::Ref::Updater
+        include MultiGit::Ref::Locking
+      protected
+        def update!(nx)
+          Rugged::Reference.create(repository.__backend__, name, object_to_ref_str(nx), true)
+        end
+        def remove!
+          ref.rugged_ref.delete!
+        end
+        def object_to_ref_str(nx)
+          case( nx )
+          when MultiGit::Object then nx.oid
+          when Ref              then nx.name
+          end
+        end
+
+        # nerf release_lock, rugged does that for us
+        def release_lock(_)
+        end
+      end
+
+      class OptimisticUpdater < Updater
+        include MultiGit::Ref::OptimisticUpdater
+      end
+
+      class PessimisticUpdater < Updater
+        include MultiGit::Ref::PessimisticUpdater
+      end
+
+      def pessimistic_updater
+        PessimisticUpdater
+      end
+
+      def optimistic_updater
+        OptimisticUpdater
+      end
+
     end
 
   end
-
 end
