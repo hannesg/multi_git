@@ -67,8 +67,16 @@ module MultiGit
 
       def initialize
         super 'Another process has updated the ref you are currently updating.
-This is unlikely to be a problem, no data got lost. You may simply retry the update.
+This is unlikely a problem, no data got lost. You may simply retry the update.
 If this happens frequently, you may have want to run "git gc" to remove clobber.'
+      end
+    end
+
+    class InvalidReferenceTarget < ArgumentError
+      include Error
+
+      def initialize(supplied_value)
+        super "References can only point to instances of MultiGit::Ref, MultiGit::Object, MultiGit::Builder or nil. You supplied: #{supplied_value.inspect}"
       end
     end
 

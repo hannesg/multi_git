@@ -81,129 +81,167 @@ env -i git update-ref refs/heads/master $COID`
       expect(head.name).to eql 'refs/heads/foo'
     end
 
-    it "creates non-existing refs" do
-      head = repository.ref('refs/heads/foo')
-      head.update do |target|
-        expect(target).to be_nil
-        commit_builder target
+    context '.update' do
+
+      it "barfs when receiving a unknown symbol" do
+        head = repository.ref('refs/heads/master')
+        expect{
+          head.update(:foo){ }
+        }.to raise_error(ArgumentError,/You supplied: :foo/)
       end
-      expect(head.reload.target.oid).to eql '553bfb16f88e60e71f527f91433aa7282066a332'
-    end
 
-    it "creates non-existing refs pessimstically" do
-      head = repository.ref('refs/heads/foo')
-      head.update(:pessimistic) do |target|
-        expect(target).to be_nil
-        commit_builder target
+      it "barfs when receiving an useable value" do
+        head = repository.ref('refs/heads/master')
+        expect{
+          head.update(:foo)
+        }.to raise_error(MultiGit::Error::InvalidReferenceTarget,/You supplied: :foo/)
       end
-      expect(head.reload.target.oid).to eql '553bfb16f88e60e71f527f91433aa7282066a332'
-    end
 
-    it "can update refs directly" do
-      head = repository.ref('refs/heads/master')
-      head.update( commit_builder head.target )
-      expect(repository.ref('refs/heads/master').target.oid).to eql 'a00f6588c95cf264fb946480494c418371105a26'
-    end
-
-    it "can lock refs optimistic" do
-      head = repository.ref('refs/heads/master')
-      head.update do |target|
-        commit_builder target
+      it "barfs when the block returns an useable value optimistically" do
+        head = repository.ref('refs/heads/master')
+        expect{
+          head.update{ :foo }
+        }.to raise_error(MultiGit::Error::InvalidReferenceTarget,/You supplied: :foo/)
       end
-      expect(repository.ref('refs/heads/master').target.oid).to eql 'a00f6588c95cf264fb946480494c418371105a26'
-    end
 
-    it "can lock refs pessimistic" do
-      head = repository.ref('refs/heads/master')
-      head.update(:pessimistic) do |target|
-        commit_builder target
+      it "barfs when the block returns an useable value pessimistically" do
+        head = repository.ref('refs/heads/master')
+        expect{
+          head.update(:pessimistic){ :foo }
+        }.to raise_error(MultiGit::Error::InvalidReferenceTarget,/You supplied: :foo/)
       end
-      expect(repository.ref('refs/heads/master').target.oid).to eql 'a00f6588c95cf264fb946480494c418371105a26'
-    end
 
-    it "barfs when a ref gets updated during optimistic update" do
-      head = repository.ref('refs/heads/master')
-      expect{
+      it "barfs when the block returns an useable value recklessly" do
+        head = repository.ref('refs/heads/master')
+        expect{
+          head.update(:reckless){ :foo }
+        }.to raise_error(MultiGit::Error::InvalidReferenceTarget,/You supplied: :foo/)
+      end
+
+      it "creates non-existing refs" do
+        head = repository.ref('refs/heads/foo')
         head.update do |target|
+          expect(target).to be_nil
+          commit_builder target
+        end
+        expect(head.reload.target.oid).to eql '553bfb16f88e60e71f527f91433aa7282066a332'
+      end
+
+      it "creates non-existing refs pessimstically" do
+        head = repository.ref('refs/heads/foo')
+        head.update(:pessimistic) do |target|
+          expect(target).to be_nil
+          commit_builder target
+        end
+        expect(head.reload.target.oid).to eql '553bfb16f88e60e71f527f91433aa7282066a332'
+      end
+
+      it "can update refs directly" do
+        head = repository.ref('refs/heads/master')
+        head.update( commit_builder head.target )
+        expect(repository.ref('refs/heads/master').target.oid).to eql 'a00f6588c95cf264fb946480494c418371105a26'
+      end
+
+      it "can lock refs optimistic" do
+        head = repository.ref('refs/heads/master')
+        head.update do |target|
+          commit_builder target
+        end
+        expect(repository.ref('refs/heads/master').target.oid).to eql 'a00f6588c95cf264fb946480494c418371105a26'
+      end
+
+      it "can lock refs pessimistic" do
+        head = repository.ref('refs/heads/master')
+        head.update(:pessimistic) do |target|
+          commit_builder target
+        end
+        expect(repository.ref('refs/heads/master').target.oid).to eql 'a00f6588c95cf264fb946480494c418371105a26'
+      end
+
+      it "barfs when a ref gets updated during optimistic update" do
+        head = repository.ref('refs/heads/master')
+        expect{
+          head.update do |target|
+            update_master
+            commit_builder target
+          end
+        }.to raise_error(MultiGit::Error::ConcurrentRefUpdate)
+      end
+
+      it "lets others barf when a ref gets updated during pessimistic update" do
+        head = repository.ref('refs/heads/master')
+        head.update(:pessimistic) do |target|
+          expect(update_master).to be =~ /fatal: Unable to create '.+\.lock': File exists./
+          expect($?.exitstatus).to eql 128
+          commit_builder target
+        end
+      end
+
+      it "just overwrites refs with reckless update" do
+        head = repository.ref('refs/heads/master')
+        head.update(:reckless) do |target|
           update_master
           commit_builder target
         end
-      }.to raise_error(MultiGit::Error::ConcurrentRefUpdate)
-    end
-
-    it "lets others barf when a ref gets updated during pessimistic update" do
-      head = repository.ref('refs/heads/master')
-      head.update(:pessimistic) do |target|
-        expect(update_master).to be =~ /fatal: Unable to create '.+\.lock': File exists./
-        expect($?.exitstatus).to eql 128
-        commit_builder target
+        expect(repository.ref('refs/heads/master').target.oid).to eql 'a00f6588c95cf264fb946480494c418371105a26'
       end
-    end
 
-    it "just overwrites refs with reckless update" do
-      head = repository.ref('refs/heads/master')
-      head.update(:reckless) do |target|
-        update_master
-        commit_builder target
+      it "delete refs optimistic" do
+        head = repository.ref('refs/heads/master')
+        head.update do |target|
+          nil
+        end
+        expect(repository.ref('refs/heads/master').target).to be_nil
       end
-      expect(repository.ref('refs/heads/master').target.oid).to eql 'a00f6588c95cf264fb946480494c418371105a26'
-    end
 
-    it "delete refs optimistic" do
-      head = repository.ref('refs/heads/master')
-      head.update do |target|
-        nil
+      it "can delete refs pessimistic" do
+        head = repository.ref('refs/heads/master')
+        head.update(:pessimistic) do |target|
+          nil
+        end
+        expect(repository.ref('refs/heads/master').target).to be_nil
       end
-      expect(repository.ref('refs/heads/master').target).to be_nil
-    end
 
-    it "can delete refs pessimistic" do
-      head = repository.ref('refs/heads/master')
-      head.update(:pessimistic) do |target|
-        nil
+      it "can delete refs reckless" do
+        head = repository.ref('refs/heads/master')
+        head.update(:reckless) do |target|
+          nil
+        end
+        expect(repository.ref('refs/heads/master').target).to be_nil
       end
-      expect(repository.ref('refs/heads/master').target).to be_nil
-    end
 
-    it "can delete refs reckless" do
-      head = repository.ref('refs/heads/master')
-      head.update(:reckless) do |target|
-        nil
+      it "can use the commit dsl" do
+        master = repository.branch('master')
+        master = master.commit do
+          tree['bar'] = 'baz'
+        end
+        expect(master['bar'].content).to eql 'baz'
       end
-      expect(repository.ref('refs/heads/master').target).to be_nil
-    end
 
-    it "can use the commit dsl" do
-      master = repository.branch('master')
-      master = master.commit do
-        tree['bar'] = 'baz'
+      it "can set symbolic refs" do
+        head = repository.ref('HEAD')
+        master = repository.ref('refs/heads/master')
+        r = head.update do
+          master
+        end
+        expect(r.target).to eql master
       end
-      expect(master['bar'].content).to eql 'baz'
-    end
 
-    it "can set symbolic refs" do
-      head = repository.ref('HEAD')
-      master = repository.ref('refs/heads/master')
-      r = head.update do
-        master
+      it "can set symbolic refs pessimistic" do
+        head = repository.ref('HEAD')
+        master = repository.ref('refs/heads/master')
+        r = head.update(:pessimistic) do
+          master
+        end
+        expect(r.target).to eql master
       end
-      expect(r.target).to eql master
-    end
 
-    it "can set symbolic refs pessimistic" do
-      head = repository.ref('HEAD')
-      master = repository.ref('refs/heads/master')
-      r = head.update(:pessimistic) do
-        master
+      it "can detach symbolic refs" do
+        head = repository.ref('HEAD')
+        target = repository.ref('refs/heads/master').target
+        head.update{ target }
+        expect(repository.ref('HEAD').target).to eql target
       end
-      expect(r.target).to eql master
-    end
-
-    it "can detach symbolic refs" do
-      head = repository.ref('HEAD')
-      target = repository.ref('refs/heads/master').target
-      head.update{ target }
-      expect(repository.ref('HEAD').target).to eql target
     end
 
     context '.eql?' do

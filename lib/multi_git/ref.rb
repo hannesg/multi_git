@@ -53,7 +53,7 @@ module MultiGit
         nx = case new
              when Ref, nil then new
              when Object, Builder then repository.write(new)
-             else raise
+             else raise Error::InvalidReferenceTarget, new
              end
         @target = nx
         return nx
@@ -343,12 +343,12 @@ module MultiGit
     #   @param lock [:reckless, :optimistic, :pessimistic]
     #   @yield [current_target] Yields the current target and expects the block to return the new target
     #   @yieldparam current_target [MultiGit::Ref, MultiGit::Object, nil] current target
-    #   @yieldreturn [MultiGit::Ref, MultiGit::Object, nil] new target
+    #   @yieldreturn [MultiGit::Ref, MultiGit::Object, MultiGit::Builder, nil] new target
     #   @return [MultiGit::Ref] The altered ref
     #
     # @overload update( value )
     #
-    #   @param value [Commit, Ref, nil] new target for this ref
+    #   @param value [MultiGit::Commit, MultiGit::Ref, MultiGit::Builder, nil] new target for this ref
     #   @return [MultiGit::Ref] The altered ref
     #
     # @example
@@ -455,6 +455,8 @@ module MultiGit
         when :optimistic  then optimistic_updater
         when :pessimistic then pessimistic_updater
         when :reckless    then reckless_updater
+        else
+          raise ArgumentError, "Locking method must be either :optimistic, :pessimistic or :reckless. You supplied: #{lock.inspect}"
         end
       else
         pessimistic_updater
