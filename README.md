@@ -3,6 +3,7 @@ multi\_git - use all the git!
 
 [![Build Status](https://travis-ci.org/hannesg/multi_git.png?branch=master)](https://travis-ci.org/hannesg/multi_git)
 [![Coverage Status](https://coveralls.io/repos/hannesg/multi_git/badge.png?branch=master)](https://coveralls.io/r/hannesg/multi_git)
+[![Code Climate](https://codeclimate.com/github/hannesg/multi_git.png)](https://codeclimate.com/github/hannesg/multi_git)
 
 multi\_git provides access to git repositories in ruby.
 
