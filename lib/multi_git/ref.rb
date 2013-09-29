@@ -224,8 +224,18 @@ module MultiGit
     end
 
     class RecklessUpdater < Updater
+      class << self
+        attr :updater
+      end
+
+      SUBCLASSES = Hash.new{|hsh,key|
+        hsh[key] = Class.new(self) do
+          @updater = key
+        end
+      }
+
       def update( new )
-        pu = PessimisticFileUpdater.new( ref )
+        pu = self.class.updater.new( ref )
         begin
           pu.update( new )
         ensure
@@ -436,7 +446,7 @@ module MultiGit
     end
 
     def reckless_updater
-      RecklessUpdater
+      RecklessUpdater::SUBCLASSES[pessimistic_updater]
     end
 
     def updater_class( block_given, lock )

@@ -165,6 +165,14 @@ env -i git update-ref refs/heads/master $COID`
       expect(repository.ref('refs/heads/master').target).to be_nil
     end
 
+    it "can delete refs reckless" do
+      head = repository.ref('refs/heads/master')
+      head.update(:reckless) do |target|
+        nil
+      end
+      expect(repository.ref('refs/heads/master').target).to be_nil
+    end
+
     it "can use the commit dsl" do
       master = repository.branch('master')
       master = master.commit do
