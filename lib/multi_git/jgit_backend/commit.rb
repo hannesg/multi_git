@@ -20,11 +20,11 @@ module MultiGit
       end
 
       def time
-        @time ||= java_commit.author_ident.when
+        @time ||= date_to_ruby(java_commit.author_ident.when).freeze
       end
 
       def commit_time
-        @time ||= java_commit.committer_ident.when
+        @time ||= date_to_ruby(java_commit.committer_ident.when).freeze
       end
 
       def author
@@ -35,6 +35,10 @@ module MultiGit
         @committer ||= MultiGit::Handle.new(java_commit.committer_ident.name,java_commit.committer_ident.email_address)
       end
     private
+
+      def date_to_ruby( date )
+        Java::OrgJruby::RubyTime.newTime(JRuby.runtime,Java::OrgJodaTime::DateTime.new(date))
+      end
 
       def java_commit
         @java_commit ||= repository.use_reader{|rd| RevWalk.new(rd).parseCommit(java_oid) }
