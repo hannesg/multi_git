@@ -198,6 +198,30 @@ env -i git update-ref refs/heads/master $COID`
       expect(repository.ref('HEAD').target).to eql target
     end
 
+    context '.eql?' do
+      it "is true for same ref" do
+        expect(repository.ref('HEAD')).to eql repository.ref('HEAD')
+      end
+      it "is false for differnt ref" do
+        expect(repository.ref('HEAD')).to_not eql repository.ref('refs/heads/master')
+      end
+    end
+
+    context '==' do
+      it "is true for same ref" do
+        expect(repository.ref('HEAD')).to be == repository.ref('HEAD')
+      end
+      it "is false for differnt ref" do
+        expect(repository.ref('HEAD')).to_not be == repository.ref('refs/heads/master')
+      end
+    end
+
+    context '.hash' do
+      it "is the same for the same ref" do
+        expect(repository.ref('HEAD').hash).to eql repository.ref('HEAD').hash
+      end
+    end
+
   end
 
   context "with a repository containing a commit", commit:true, &blk
