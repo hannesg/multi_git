@@ -12,15 +12,15 @@ describe MultiGit::Tree::Builder, :tree_builder => true do
   it "can add files" do
     bld = subject.new
     bld.file "foo"
-    bld['foo'].should be_a(MultiGit::File::Builder)
-    bld['foo'].parent.should == bld
+    expect(bld['foo']).to be_a(MultiGit::File::Builder)
+    expect(bld['foo'].parent).to eql bld
   end
 
   it "can add directories" do
     bld = subject.new
     bld.directory "foo"
-    bld['foo'].should be_a(MultiGit::Directory::Builder)
-    bld['foo'].parent.should == bld
+    expect(bld['foo']).to be_a(MultiGit::Directory::Builder)
+    expect(bld['foo'].parent).to eql bld
   end
 
   it "can add nested directories" do
@@ -28,13 +28,13 @@ describe MultiGit::Tree::Builder, :tree_builder => true do
     bld.directory "foo" do
       directory "bar"
     end
-    bld['foo']['bar'].should be_a(MultiGit::Directory::Builder)
+    expect(bld['foo']['bar']).to be_a(MultiGit::Directory::Builder)
   end
 
   it "can add nested directories with []=" do
     bld = subject.new
     bld['foo/bar'] = "blob"
-    bld['foo']['bar'].should be_a(MultiGit::File::Builder)
+    expect(bld['foo']['bar']).to be_a(MultiGit::File::Builder)
   end
 
   it "doesn't create directories if create: false is supplied" do
@@ -56,21 +56,21 @@ describe MultiGit::Tree::Builder, :tree_builder => true do
     bld = subject.new
     bld.file 'foo'
     bld['foo/bar', create: :overwrite] = "blob"
-    bld['foo']['bar'].should be_a(MultiGit::File::Builder)
+    expect(bld['foo']['bar']).to be_a(MultiGit::File::Builder)
   end
 
   it "can add links" do
     bld = subject.new
     bld['foo'] = 'blob'
     bld.link('bar', 'foo')
-    bld['bar', follow:false].resolve.should == bld['foo']
+    expect(bld['bar', follow:false].resolve).to eql bld['foo']
   end
 
   it "is nesteable" do
     bld1 = subject.new
     bld1.file 'foo'
     bld2 = subject.new(bld1)
-    bld2['foo'].should be_a(MultiGit::File::Builder)
+    expect(bld2['foo']).to be_a(MultiGit::File::Builder)
   end
 
   it "is covers overwritten entries" do
@@ -78,8 +78,8 @@ describe MultiGit::Tree::Builder, :tree_builder => true do
     bld1.file 'foo'
     bld2 = subject.new(bld1)
     bld2.directory('foo')
-    bld2['foo'].should be_a(MultiGit::Directory::Builder)
-    bld2.names.should == ['foo']
+    expect(bld2['foo']).to be_a(MultiGit::Directory::Builder)
+    expect(bld2.names).to eql ['foo']
   end
 
   describe '#changed?' do

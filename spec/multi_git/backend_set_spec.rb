@@ -24,15 +24,15 @@ describe MultiGit::BackendSet, backend_set: true do
   it "allows adding and retrieving backend" do
     set = MultiGit::BackendSet.new
     set[:foo] = a_backend
-    set[:foo].should == a_backend
-    set.priority(:foo).should == 0
+    expect(set[:foo]).to eql a_backend
+    expect(set.priority(:foo)).to eql 0
   end
 
   it "allows adding a backend with priority" do
     set = MultiGit::BackendSet.new
     set[:foo, priority: 100] = a_backend
-    set[:foo].should == a_backend
-    set.priority(:foo).should == 100
+    expect(set[:foo]).to eql a_backend
+    expect(set.priority(:foo)).to eql 100
   end
 
   describe '#[]' do
@@ -40,12 +40,12 @@ describe MultiGit::BackendSet, backend_set: true do
     it 'resolves :best' do
       set = MultiGit::BackendSet.new
       set[:foo] = a_backend
-      set[:best].should == a_backend
+      expect(set[:best]).to eql a_backend
     end
 
     it 'passes thru Backends' do
       set = MultiGit::BackendSet.new
-      set[ a_backend ].should == a_backend
+      expect(set[ a_backend ]).to eql a_backend
     end
 
   end
@@ -56,14 +56,14 @@ describe MultiGit::BackendSet, backend_set: true do
       set = MultiGit::BackendSet.new
       set[:foo] = a_backend
       set[:bar, priority: 1] = a_different_backend
-      set.best.should == a_different_backend
+      expect(set.best).to eql a_different_backend
     end
 
     it "ignores unavailable backends" do
       set = MultiGit::BackendSet.new
       set[:foo] = a_backend
       set[:bar, priority: 1] = an_unavailable_backend
-      set.best.should == a_backend
+      expect(set.best).to eql a_backend
     end
 
   end

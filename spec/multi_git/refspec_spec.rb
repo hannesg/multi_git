@@ -9,9 +9,9 @@ describe MultiGit::RefSpec, :refspec => true do
       ps = parser['refs/heads/master:refs/remotes/origin/master']
       expect( ps.size ).to eql 1
       p = ps[0]
-      p.from.should == 'refs/heads/master'
-      p.to.should == 'refs/remotes/origin/master'
-      p.should_not be_forced
+      expect(p.from).to eql 'refs/heads/master'
+      expect(p.to).to eql 'refs/remotes/origin/master'
+      expect(p).to_not be_forced
     end
 
     it 'works for shortened refspecs' do

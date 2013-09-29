@@ -9,19 +9,19 @@ describe '#config', config: true do
     end
 
     it "is a MultiGit::Config" do
-      should be_a(MultiGit::Config)
+      expect(subject).to be_a(MultiGit::Config)
     end
 
     it "contains some keys" do
-      subject.to_h.should == { ['core',nil,'bare'] => true }
+      expect(subject.to_h).to eql({ ['core',nil,'bare'] => true })
     end
 
     it "supports hash-access with a qualified key" do
-      subject['core.filemode'].should == true
+      expect(subject['core.filemode']).to eql true
     end
 
     it "supports hash-access with section and key" do
-      subject['core','filemode'].should == true
+      expect(subject['core','filemode']).to eql true
     end
 
     it "uses the default for a simple non-existing key" do
@@ -47,7 +47,7 @@ describe '#config', config: true do
       expect( conf['pirates','arrrrr'] ).to eql ['waaaaa']
     end
 
-    it 'should support #each' do
+    it 'supports #each' do
       expect{|yld|
         subject.each(&yld)
       }.to yield_with_args(['core',nil,'bare'],true)
@@ -82,7 +82,7 @@ describe '#config', config: true do
     end
 
     it "lists all values" do
-      subject['remote', 'origin', 'url'].should == ['foo@bar.com:baz.git', 'baz@foo.com:bar.git']
+      expect(subject['remote', 'origin', 'url']).to eql ['foo@bar.com:baz.git', 'baz@foo.com:bar.git']
     end
 
     it 'supports #each' do
@@ -111,7 +111,7 @@ describe '#config', config: true do
 
     it "takes the last one" do
       pending "See list of inconsistencies" if jgit?
-      subject['core', nil, 'bare'].should be_false
+      expect(subject['core', nil, 'bare']).to be_false
     end
   end
 end

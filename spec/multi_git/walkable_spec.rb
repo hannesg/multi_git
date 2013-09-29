@@ -8,17 +8,17 @@ describe MultiGit::Walkable, walkable: true do
   }
 
   it "walks pre-order" do
-    walker.should_receive(:walk_pre)
+    expect(walker).to receive(:walk_pre)
     walker.walk do end
   end
 
   it "walks post-order" do
-    walker.should_receive(:walk_post)
+    expect(walker).to receive(:walk_post)
     walker.walk(:post) do end
   end
 
   it "walks leafs" do
-    walker.should_receive(:walk_leaves)
+    expect(walker).to receive(:walk_leaves)
     walker.walk(:leaves) do end
   end
 

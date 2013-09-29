@@ -32,40 +32,40 @@ env -i git update-ref refs/heads/master $COID`
 
     it "reads the commit" do
       commit = repository.read('refs/heads/master')
-      commit.parents.should == []
-      commit.tree.should be_a(MultiGit::Tree)
-      commit.message.should == "msg\n"
+      expect(commit.parents).to eql []
+      expect(commit.tree).to be_a(MultiGit::Tree)
+      expect(commit.message).to eql "msg\n"
     end
 
     it "forwards certain methods to the tree" do
       commit = repository.read('master')
-      commit['foo'].should be_a(MultiGit::File)
-      (commit / 'foo' ).should be_a(MultiGit::File)
+      expect(commit['foo']).to be_a(MultiGit::File)
+      expect((commit / 'foo' )).to be_a(MultiGit::File)
     end
 
     it "allows building a child commit" do
       commit = repository.read('master')
       child = MultiGit::Commit::Builder.new( commit )
-      child.tree['foo'].should be_a(MultiGit::File::Builder)
-      child.parents[0].should == commit
+      expect(child.tree['foo']).to be_a(MultiGit::File::Builder)
+      expect(child.parents[0]).to eql commit
       child.message = 'foo'
       handle = child.author = child.committer = MultiGit::Handle.new('multi_git','info@multi.git')
       child.time = child.commit_time = Time.utc(2010,1,1,12,0,0)
       nu = child >> repository
-      nu.committer.should == handle
-      nu.author.should == handle
-      nu.time.should == Time.utc(2010,1,1,12,0,0)
-      nu.commit_time.should == Time.utc(2010,1,1,12,0,0)
-      nu.message.should == 'foo'
-      nu.oid.should == "04cd8dc458e3a6f98cd498b18f905c6a4fd30778"
+      expect(nu.committer).to eql handle
+      expect(nu.author).to eql handle
+      expect(nu.time).to eql Time.utc(2010,1,1,12,0,0)
+      expect(nu.commit_time).to eql Time.utc(2010,1,1,12,0,0)
+      expect(nu.message).to eql 'foo'
+      expect(nu.oid).to eql "04cd8dc458e3a6f98cd498b18f905c6a4fd30778"
     end
 
     it "handles refs" do
       head = repository.ref('refs/heads/master')
-      head.target.should == repository.read('refs/heads/master')
-      head.name.should == 'refs/heads/master'
-      head.should be_exists
-      head.should_not be_symbolic
+      expect(head.target).to eql repository.read('refs/heads/master')
+      expect(head.name).to eql 'refs/heads/master'
+      expect(head).to be_exists
+      expect(head).to_not be_symbolic
     end
 
     it "refuses wrong refs" do
@@ -76,33 +76,33 @@ env -i git update-ref refs/heads/master $COID`
 
     it "handles non-existing refs" do
       head = repository.ref('refs/heads/foo')
-      head.target.should be_nil
-      head.should_not be_exists
-      head.name.should == 'refs/heads/foo'
+      expect(head.target).to be_nil
+      expect(head).to_not be_exists
+      expect(head.name).to eql 'refs/heads/foo'
     end
 
     it "creates non-existing refs" do
       head = repository.ref('refs/heads/foo')
       head.update do |target|
-        target.should be_nil
+        expect(target).to be_nil
         commit_builder target
       end
-      head.reload.target.oid.should == '553bfb16f88e60e71f527f91433aa7282066a332'
+      expect(head.reload.target.oid).to eql '553bfb16f88e60e71f527f91433aa7282066a332'
     end
 
     it "creates non-existing refs pessimstically" do
       head = repository.ref('refs/heads/foo')
       head.update(:pessimistic) do |target|
-        target.should be_nil
+        expect(target).to be_nil
         commit_builder target
       end
-      head.reload.target.oid.should == '553bfb16f88e60e71f527f91433aa7282066a332'
+      expect(head.reload.target.oid).to eql '553bfb16f88e60e71f527f91433aa7282066a332'
     end
 
     it "can update refs directly" do
       head = repository.ref('refs/heads/master')
       head.update( commit_builder head.target )
-      repository.ref('refs/heads/master').target.oid.should == 'a00f6588c95cf264fb946480494c418371105a26'
+      expect(repository.ref('refs/heads/master').target.oid).to eql 'a00f6588c95cf264fb946480494c418371105a26'
     end
 
     it "can lock refs optimistic" do
@@ -110,7 +110,7 @@ env -i git update-ref refs/heads/master $COID`
       head.update do |target|
         commit_builder target
       end
-      repository.ref('refs/heads/master').target.oid.should == 'a00f6588c95cf264fb946480494c418371105a26'
+      expect(repository.ref('refs/heads/master').target.oid).to eql 'a00f6588c95cf264fb946480494c418371105a26'
     end
 
     it "can lock refs pessimistic" do
@@ -118,7 +118,7 @@ env -i git update-ref refs/heads/master $COID`
       head.update(:pessimistic) do |target|
         commit_builder target
       end
-      repository.ref('refs/heads/master').target.oid.should == 'a00f6588c95cf264fb946480494c418371105a26'
+      expect(repository.ref('refs/heads/master').target.oid).to eql 'a00f6588c95cf264fb946480494c418371105a26'
     end
 
     it "barfs when a ref gets updated during optimistic update" do
@@ -134,8 +134,8 @@ env -i git update-ref refs/heads/master $COID`
     it "lets others barf when a ref gets updated during pessimistic update" do
       head = repository.ref('refs/heads/master')
       head.update(:pessimistic) do |target|
-        update_master.should =~ /fatal: Unable to create '.+\.lock': File exists./
-        $?.exitstatus.should == 128
+        expect(update_master).to be =~ /fatal: Unable to create '.+\.lock': File exists./
+        expect($?.exitstatus).to eql 128
         commit_builder target
       end
     end
@@ -146,7 +146,7 @@ env -i git update-ref refs/heads/master $COID`
         update_master
         commit_builder target
       end
-      repository.ref('refs/heads/master').target.oid.should == 'a00f6588c95cf264fb946480494c418371105a26'
+      expect(repository.ref('refs/heads/master').target.oid).to eql 'a00f6588c95cf264fb946480494c418371105a26'
     end
 
     it "delete refs optimistic" do
@@ -154,7 +154,7 @@ env -i git update-ref refs/heads/master $COID`
       head.update do |target|
         nil
       end
-      repository.ref('refs/heads/master').target.should be_nil
+      expect(repository.ref('refs/heads/master').target).to be_nil
     end
 
     it "can delete refs pessimistic" do
@@ -162,7 +162,7 @@ env -i git update-ref refs/heads/master $COID`
       head.update(:pessimistic) do |target|
         nil
       end
-      repository.ref('refs/heads/master').target.should be_nil
+      expect(repository.ref('refs/heads/master').target).to be_nil
     end
 
     it "can use the commit dsl" do
@@ -170,7 +170,7 @@ env -i git update-ref refs/heads/master $COID`
       master = master.commit do
         tree['bar'] = 'baz'
       end
-      master['bar'].content.should == 'baz'
+      expect(master['bar'].content).to eql 'baz'
     end
 
     it "can set symbolic refs" do
@@ -179,7 +179,7 @@ env -i git update-ref refs/heads/master $COID`
       r = head.update do
         master
       end
-      r.target.should == master
+      expect(r.target).to eql master
     end
 
     it "can set symbolic refs pessimistic" do
@@ -188,14 +188,14 @@ env -i git update-ref refs/heads/master $COID`
       r = head.update(:pessimistic) do
         master
       end
-      r.target.should == master
+      expect(r.target).to eql master
     end
 
     it "can detach symbolic refs" do
       head = repository.ref('HEAD')
       target = repository.ref('refs/heads/master').target
       head.update{ target }
-      repository.ref('HEAD').target.should == target
+      expect(repository.ref('HEAD').target).to eql target
     end
 
   end

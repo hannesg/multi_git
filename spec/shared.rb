@@ -5,40 +5,40 @@ require 'timeout'
 shared_examples "a MultiGit blob instance" do
 
   it "is recognized as a Git::Blob" do
-    make_blob("Use all the git!").should be_a(MultiGit::Blob)
+    expect(make_blob("Use all the git!")).to be_a(MultiGit::Blob)
   end
 
   it "is readeable" do
-    make_blob("Use all the git!").content.should be_a(String)
+    expect(make_blob("Use all the git!").content).to be_a(String)
   end
 
   it "has frozen content" do
-    make_blob("Use all the git!").content.should be_frozen
+    expect(make_blob("Use all the git!").content).to be_frozen
   end
 
   it "returns different ios" do
     blob = make_blob("Use all the git!")
     io1 = blob.to_io
-    io1.read.should == "Use all the git!"
-    io1.read.should == ""
+    expect(io1.read).to eql "Use all the git!"
+    expect(io1.read).to eql ""
     io2 = blob.to_io
-    io2.read.should == "Use all the git!"
-    io1.read.should == ""
+    expect(io2.read).to eql "Use all the git!"
+    expect(io1.read).to eql ""
   end
 
   it "returns rewindeable ios" do
     blob = make_blob("Use all the git!")
     io = blob.to_io
-    io.read.should == "Use all the git!"
-    io.read.should == ""
+    expect(io.read).to eql "Use all the git!"
+    expect(io.read).to eql ""
     io.rewind
-    io.read.should == "Use all the git!"
-    io.read.should == ""
+    expect(io.read).to eql "Use all the git!"
+    expect(io.read).to eql ""
   end
 
   it "has the correct size" do
     blob = make_blob("Use all the git!")
-    blob.bytesize.should == 16
+    expect(blob.bytesize).to eql 16
   end
 end
 
@@ -46,23 +46,23 @@ shared_examples "an empty repository" do
 
   it "can add a blob from string" do
     result = repository.write("Blobs", :blob)
-    result.should be_a(MultiGit::Blob)
-    result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
+    expect(result).to be_a(MultiGit::Blob)
+    expect(result.oid).to eql 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
   end
 
   it "behaves nice if an object is already present" do
     repository.write("Blobs", :blob)
     result = repository.write("Blobs", :blob)
-    result.should be_a(MultiGit::Blob)
-    result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
+    expect(result).to be_a(MultiGit::Blob)
+    expect(result.oid).to eql 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
   end
 
   it "can add a blob from an IO ducktype" do
     io = double("io")
-    io.should_receive(:read).and_return "Blobs"
+    expect(io).to receive(:read).and_return "Blobs"
     result = repository.write(io, :blob)
-    result.should be_a(MultiGit::Blob)
-    result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
+    expect(result).to be_a(MultiGit::Blob)
+    expect(result.oid).to eql 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
   end
 
   it "can add a blob from a file ducktype" do
@@ -71,8 +71,8 @@ shared_examples "an empty repository" do
     tmpfile.write "Blobs"
     tmpfile.rewind
     result = repository.write(tmpfile, :blob)
-    result.should be_a(MultiGit::Blob)
-    result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
+    expect(result).to be_a(MultiGit::Blob)
+    expect(result.oid).to eql 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
   ensure
     File.unlink tmpfile.path if tmpfile
   end
@@ -83,10 +83,10 @@ shared_examples "an empty repository" do
     blob.extend(MultiGit::Object)
     blob.extend(MultiGit::Blob)
     blob.stub(:oid){ 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a' }
-    blob.should_receive(:to_io).and_return StringIO.new("Blobs")
+    expect(blob).to receive(:to_io).and_return StringIO.new("Blobs")
     result = repository.write(blob)
-    result.should be_a(MultiGit::Blob)
-    result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
+    expect(result).to be_a(MultiGit::Blob)
+    expect(result.oid).to eql 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
   end
 
   it "short-circuts adding an already present blob" do
@@ -94,19 +94,19 @@ shared_examples "an empty repository" do
     blob.extend(MultiGit::Object)
     blob.extend(MultiGit::Blob)
     blob.stub(:oid){ 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a' }
-    blob.should_not_receive(:read)
+    expect(blob).not_to receive(:read)
     repository.write("Blobs")
     result = repository.write(blob)
-    result.should be_a(MultiGit::Blob)
-    result.oid.should == 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
+    expect(result).to be_a(MultiGit::Blob)
+    expect(result.oid).to eql 'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
   end
 
   it "can add a File::Builder" do
     fb = MultiGit::File::Builder.new(nil, "a", "Blobs")
     result = repository.write(fb)
-    result.should be_a(MultiGit::File)
-    result.name.should == 'a'
-    result.oid.should ==  'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
+    expect(result).to be_a(MultiGit::File)
+    expect(result.name).to eql 'a'
+    expect(result.oid).to eql  'b4abd6f716fef3c1a4e69f37bd591d9e4c197a4a'
   end
 
   it "a File::Builder compares equal to the file it created" do
@@ -127,11 +127,11 @@ shared_examples "an empty repository" do
       end
     end
     result = repository.write(tb)
-    result.should be_a(MultiGit::Tree)
-    result['a'].should be_a(MultiGit::File)
-    result['c'].should be_a(MultiGit::Directory)
-    result['c/d'].should be_a(MultiGit::File)
-    result.oid.should ==  'b490aa5179132fe8ea44df539cf8ede23d9cc5e2'
+    expect(result).to be_a(MultiGit::Tree)
+    expect(result['a']).to be_a(MultiGit::File)
+    expect(result['c']).to be_a(MultiGit::Directory)
+    expect(result['c/d']).to be_a(MultiGit::File)
+    expect(result.oid).to eql  'b490aa5179132fe8ea44df539cf8ede23d9cc5e2'
   end
 
   it "can add a Tree::Builder with executeables" do
@@ -142,25 +142,25 @@ shared_examples "an empty repository" do
       end
     end
     result = repository.write(tb)
-    result.should be_a(MultiGit::Tree)
-    result['a'].should be_a(MultiGit::Executeable)
-    result['c'].should be_a(MultiGit::Directory)
-    result['c/d'].should be_a(MultiGit::Executeable)
-    result.oid.should ==  'd65bc69b6facdb9c389c3b6dc1c2a0d2115ad076'
+    expect(result).to be_a(MultiGit::Tree)
+    expect(result['a']).to be_a(MultiGit::Executeable)
+    expect(result['c']).to be_a(MultiGit::Directory)
+    expect(result['c/d']).to be_a(MultiGit::Executeable)
+    expect(result.oid).to eql  'd65bc69b6facdb9c389c3b6dc1c2a0d2115ad076'
   end
 
   it "can read a previously added blob" do
     inserted = repository.write("Blobs", :blob)
     object = repository.read(inserted.oid)
-    object.should be_a(MultiGit::Blob)
-    object.content.should == "Blobs"
-    object.bytesize.should == 5
-    object.oid.should == inserted.oid
+    expect(object).to be_a(MultiGit::Blob)
+    expect(object.content).to eql "Blobs"
+    expect(object.bytesize).to eql 5
+    expect(object.oid).to eql inserted.oid
   end
 
   it "can parse a sha1-prefix to the full oid" do
     inserted = repository.write("Blobs", :blob)
-    repository.parse(inserted.oid[0..10]).should == inserted.oid
+    expect(repository.parse(inserted.oid[0..10])).to eql inserted.oid
   end
 
   it "barfs when trying to read an non-existing oid" do
@@ -178,7 +178,7 @@ shared_examples "an empty repository" do
                                   ['a', 0100644, oida],
                                   ['b', 0100644, oidb]
                                 ])
-    tree.oid.should == "24e88cb96c396400000ef706d1ca1ed9a88251aa"
+    expect(tree.oid).to eql "24e88cb96c396400000ef706d1ca1ed9a88251aa"
   end
 
   it "can add a nested tree with #make_tree", :make_tree => true do
@@ -188,7 +188,7 @@ shared_examples "an empty repository" do
                                 ])
     tree = repository.make_tree([
                                 ['tree', 040000, inner_tree.oid]])
-    tree.oid.should == "ea743e8d65faf4e126f0d1c4629d1083a89ca6af"
+    expect(tree.oid).to eql "ea743e8d65faf4e126f0d1c4629d1083a89ca6af"
   end
 
 end
@@ -216,13 +216,13 @@ shared_examples "a MultiGit backend" do
     end
 
     it "inits a repository with :init" do
-      subject.open(tempdir, :init => true).should be_a(MultiGit::Repository)
-      File.exists?(File.join(tempdir,'.git')).should be_true
+      expect(subject.open(tempdir, :init => true)).to be_a(MultiGit::Repository)
+      expect(File.exists?(File.join(tempdir,'.git'))).to be_true
     end
 
     it "inits a bare repository with :init and :bare" do
-      subject.open(tempdir, :init => true, :bare => true).should be_a(MultiGit::Repository)
-      File.exists?(File.join(tempdir,'refs')).should be_true
+      expect(subject.open(tempdir, :init => true, :bare => true)).to be_a(MultiGit::Repository)
+      expect(File.exists?(File.join(tempdir,'refs'))).to be_true
     end
   end
 
@@ -238,23 +238,23 @@ shared_examples "a MultiGit backend" do
 
     it "opens the repo without options" do
       repo = subject.open(tempdir)
-      repo.should be_a(MultiGit::Repository)
-      repo.should_not be_bare
-      repo.git_dir.should == File.join(tempdir, '.git')
-      repo.git_work_tree.should == tempdir
+      expect(repo).to be_a(MultiGit::Repository)
+      expect(repo).to_not be_bare
+      expect(repo.git_dir).to eql File.join(tempdir, '.git')
+      expect(repo.git_work_tree).to eql tempdir
     end
 
     it "opens the repo with :bare => false option" do
       repo = subject.open(tempdir, bare: false)
-      repo.should be_a(MultiGit::Repository)
-      repo.should_not be_bare
+      expect(repo).to be_a(MultiGit::Repository)
+      expect(repo).to_not be_bare
     end
 
     it "opens the repo with :bare => true option" do
       pending
       repo = subject.open(tempdir, bare: true)
-      repo.should be_a(MultiGit::Repository)
-      repo.should be_bare
+      expect(repo).to be_a(MultiGit::Repository)
+      expect(repo).to be_bare
     end
 
     it_behaves_like "an empty repository"
@@ -273,15 +273,15 @@ shared_examples "a MultiGit backend" do
 
     it "opens the repo without options" do
       repo = subject.open(tempdir)
-      repo.should be_a(MultiGit::Repository)
-      repo.git_dir.should == tempdir
-      repo.git_work_tree.should be_nil
-      repo.should be_bare
+      expect(repo).to be_a(MultiGit::Repository)
+      expect(repo.git_dir).to eql tempdir
+      expect(repo.git_work_tree).to be_nil
+      expect(repo).to be_bare
     end
 
     it "opens the repo with :bare => true option" do
       repo = subject.open(tempdir, bare: true)
-      repo.should be_a(MultiGit::Repository)
+      expect(repo).to be_a(MultiGit::Repository)
     end
 
     it "barfs with :bare => false option" do
@@ -334,12 +334,12 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
 
     it "reads the tree" do
       tree = repository.read(tree_oid)
-      tree.should be_a(MultiGit::Tree)
+      expect(tree).to be_a(MultiGit::Tree)
     end
 
     it "knows the size" do
       tree = repository.read(tree_oid)
-      tree.size.should == 2
+      expect(tree.size).to eql 2
     end
 
     it "iterates over the tree" do
@@ -352,12 +352,12 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
     end
 
     it "has the right size" do
-      tree.size.should == 2
+      expect(tree.size).to eql 2
     end
 
     it "allows treating the tree as io" do
       begin
-        tree.to_io.read.bytes.to_a.should == [49, 48, 48, 54, 52, 52, 32, 98, 97, 114, 0, 37, 124, 197, 100, 44, 177, 160, 84, 240, 140, 200, 63, 45, 148, 62, 86, 253, 62, 190, 153, 52, 48, 48, 48, 48, 32, 102, 111, 111, 0, 239, 188, 23, 230, 30, 116, 109, 173, 92, 131, 75, 203, 148, 134, 155, 166, 107, 98, 100, 249]
+        expect(tree.to_io.read.bytes.to_a).to eql [49, 48, 48, 54, 52, 52, 32, 98, 97, 114, 0, 37, 124, 197, 100, 44, 177, 160, 84, 240, 140, 200, 63, 45, 148, 62, 86, 253, 62, 190, 153, 52, 48, 48, 48, 48, 32, 102, 111, 111, 0, 239, 188, 23, 230, 30, 116, 109, 173, 92, 131, 75, 203, 148, 134, 155, 166, 107, 98, 100, 249]
       rescue NoMethodError => e
         if RUBY_ENGINE == 'rbx' && e.message == "undefined method `ascii?' on nil:NilClass."
           pending "chomp is borked in rubinius"
@@ -367,17 +367,17 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
     end
 
     it "allows treating the tree as io" do
-      tree.bytesize.should == 61
+      expect(tree.bytesize).to eql 61
     end
 
     describe "#[]" do
 
       it "allows accessing entries by name" do
-        tree['foo'].should be_a(MultiGit::Directory)
+        expect(tree['foo']).to be_a(MultiGit::Directory)
       end
 
       it "allows accessing nested entries" do
-        tree['foo/bar'].should be_a(MultiGit::File)
+        expect(tree['foo/bar']).to be_a(MultiGit::File)
       end
 
       it "raises an error for an object" do
@@ -388,11 +388,11 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
 
     describe "#key?" do
       it "confirms correctly for names" do
-        tree.key?('foo').should be_true
+        expect(tree.key?('foo')).to be_true
       end
 
       it "declines correctly for names" do
-        tree.key?('blub').should be_false
+        expect(tree.key?('blub')).to be_false
       end
 
       it "raises an error for objects" do
@@ -403,7 +403,7 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
     describe '#/' do
 
       it "allows accessing entries with a slash" do
-        (tree / 'foo').should be_a(MultiGit::Directory)
+        expect((tree / 'foo')).to be_a(MultiGit::Directory)
       end
 
       it "sets the correct parent" do
@@ -411,7 +411,7 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
       end
 
       it "allows accessing nested entries with a slash" do
-        (tree / 'foo/bar').should be_a(MultiGit::File)
+        expect((tree / 'foo/bar')).to be_a(MultiGit::File)
       end
 
       it "raises an error for missing entry offset" do
@@ -433,39 +433,39 @@ echo "100644 blob $OID\tbar\n040000 tree $TOID\tfoo" | env -i git mktree > /dev/
     describe '#to_builder' do
 
       it "creates a builder" do
-        tree.to_builder.should be_a(MultiGit::Builder)
+        expect(tree.to_builder).to be_a(MultiGit::Builder)
       end
 
       it "contains all entries from the original tree" do
         b = tree.to_builder
-        b.size.should == 2
-        b['foo'].should be_a(MultiGit::Directory::Builder)
-        b['bar'].should be_a(MultiGit::File::Builder)
+        expect(b.size).to eql 2
+        expect(b['foo']).to be_a(MultiGit::Directory::Builder)
+        expect(b['bar']).to be_a(MultiGit::File::Builder)
       end
 
       it "contains entries with correct parent" do
         b = tree.to_builder
         b.each do |e|
-          e.parent.should == b
+          expect(e.parent).to eql b
         end
       end
 
       it "allows deleting keys" do
         b = tree.to_builder
         b.delete('bar')
-        b.size.should == 1
-        b.entry('bar').should be_nil
+        expect(b.size).to eql 1
+        expect(b.entry('bar')).to be_nil
         new_tree = b >> repository
-        new_tree.oid.should == "d4ab49e21a8683faa04acb23ba7aa3c1840509a0"
+        expect(new_tree.oid).to eql "d4ab49e21a8683faa04acb23ba7aa3c1840509a0"
       end
 
       it "allows deleting nested keys" do
         b = tree.to_builder
         b.delete('foo/bar')
-        b['foo'].size.should == 0
-        b.entry('foo/bar').should be_nil
+        expect(b['foo'].size).to eql 0
+        expect(b.entry('foo/bar')).to be_nil
         new_tree = b >> repository
-        new_tree.oid.should == "907fcde7d35ba60b853b4d78465d2cc36824ec08"
+        expect(new_tree.oid).to eql "907fcde7d35ba60b853b4d78465d2cc36824ec08"
       end
 
     end
@@ -545,16 +545,16 @@ echo "120000 blob $OID\tbar\n100644 blob $OID\tfoo" | env -i git mktree`
     let(:tree){ repository.read(tree_oid) }
 
     it "reads the symlink" do
-      tree['bar', follow: false].should be_a(MultiGit::Symlink)
+      expect(tree['bar', follow: false]).to be_a(MultiGit::Symlink)
     end
 
     it "resolves the symlink" do
       target = tree['bar', follow: false].resolve 
-      target.should be_a(MultiGit::File)
+      expect(target).to be_a(MultiGit::File)
     end
 
     it "automatically resolves the symlink" do
-      tree['bar'].should be_a(MultiGit::File)
+      expect(tree['bar']).to be_a(MultiGit::File)
     end
 
     it "gives a useful error when trying to traverse into the file" do
@@ -567,19 +567,19 @@ echo "120000 blob $OID\tbar\n100644 blob $OID\tfoo" | env -i git mktree`
 
       it "gives a builder" do
         b = tree.to_builder
-        b['bar', follow: false].should be_a(MultiGit::Symlink::Builder)
+        expect(b['bar', follow: false]).to be_a(MultiGit::Symlink::Builder)
       end
 
       it "gives a builder" do
         b = tree.to_builder
-        b['bar'].should be_a(MultiGit::File::Builder)
+        expect(b['bar']).to be_a(MultiGit::File::Builder)
       end
 
       it "allows setting the target" do
         b = tree.to_builder
         b.file('buz','Zup')
         b['bar', follow: false].target = "buz"
-        b['bar'].name.should == 'buz'
+        expect(b['bar'].name).to eql 'buz'
       end
 
     end
@@ -614,7 +614,7 @@ echo "120000 blob $OID\tfoo" | env -i git mktree`
     it "allows traverse it without follow" do
       # This could loop forever, so ...
       Timeout.timeout(2) do
-        tree['foo', follow: false].should be_a(MultiGit::Symlink)
+        expect(tree['foo', follow: false]).to be_a(MultiGit::Symlink)
       end
     end
 
@@ -707,7 +707,7 @@ echo "120000 blob $OID\tfoo" | env -i git mktree`
 
     it 'reads the executeable correctly' do
       commit = repository.branch('master').target
-      commit.tree['foo'].should be_a MultiGit::Executeable
+      expect(commit.tree['foo']).to be_a MultiGit::Executeable
     end
 
   end

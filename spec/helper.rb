@@ -10,7 +10,11 @@ SimpleCov.start do
   maximum_coverage_drop 5
 end
 Bundler.require(:default, :development)
-
+RSpec.configure do |config|
+  config.expect_with :rspec do |c|
+    c.syntax = :expect
+  end
+end
 class Something
 
   def initialize(matchers)

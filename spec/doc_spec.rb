@@ -18,7 +18,7 @@ describe "docs" do
         code = tag.text.gsub(/^[^\n]*#UNDEFINED!/,'').gsub(/(.*)\s*#=> (.*)(\n|$)/){
           "expect(#{$1}).to #{$2}\n"
         }
-        it "#{object.to_s} in #{object.file}:#{object.line} should have valid example #{(i+1).to_s}" do
+        it "#{object.to_s} in #{object.file}:#{object.line} has a valid example #{(i+1).to_s}" do
           eval code
         end
       end

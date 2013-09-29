@@ -8,7 +8,7 @@ describe MultiGit::Backend do
         extend MultiGit::Backend
         check "foo", &yld
       end
-      o.available?.should be_true
+      expect(o.available?).to be_true
     }.to yield_with_no_args
   end
 
@@ -18,7 +18,7 @@ describe MultiGit::Backend do
       extend MultiGit::Backend
       check "foo" do false end
     end
-    o.available?.should be_false
+    expect(o.available?).to be_false
   end
 
   it "marks a check as failed if it raises an exception" do
@@ -29,8 +29,8 @@ describe MultiGit::Backend do
         raise "No"
       end
     end
-    o.available?.should be_false
-    o.exception.should be_a(RuntimeError)
+    expect(o.available?).to be_false
+    expect(o.exception).to be_a(RuntimeError)
   end
 
 end

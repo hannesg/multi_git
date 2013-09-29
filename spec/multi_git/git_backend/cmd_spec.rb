@@ -26,7 +26,7 @@ describe MultiGit::GitBackend::Cmd, cmd: true do
     result = Cmd.new('/bin/bash').call do |stdout|
                object
              end
-    result.should == object
+    expect(result).to eql object
   end
 
   it "yields stdout if called with a unary block" do
@@ -38,19 +38,19 @@ describe MultiGit::GitBackend::Cmd, cmd: true do
   end
 
   it "emtpies the env" do
-    Cmd.new('/usr/bin/env').call.should == ""
+    expect(Cmd.new('/usr/bin/env').call).to eql ""
   end
 
   it "set env variables" do
-    Cmd.new('/usr/bin/env').call_env({'FOO'=>'BAR'}).should == "FOO=BAR\n"
+    expect(Cmd.new('/usr/bin/env').call_env({'FOO'=>'BAR'})).to eql "FOO=BAR\n"
   end
 
   it "takes a default env" do
-    Cmd.new({'FOO'=>'BAR'}, '/usr/bin/env').call.should == "FOO=BAR\n"
+    expect(Cmd.new({'FOO'=>'BAR'}, '/usr/bin/env').call).to eql "FOO=BAR\n"
   end
 
   it "allows overiding the env" do
-    Cmd.new({'FOO'=>'BAR'}, '/usr/bin/env').call_env('FOO'=>'RAB').should == "FOO=RAB\n"
+    expect(Cmd.new({'FOO'=>'BAR'}, '/usr/bin/env').call_env('FOO'=>'RAB')).to eql "FOO=RAB\n"
   end
 
 end

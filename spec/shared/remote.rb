@@ -7,15 +7,15 @@ describe '#remote', remote: true do
     let(:remote){ repository.remote('git://github.com/git/git.git') }
 
     it 'works' do
-      remote.should be_a(MultiGit::Remote)
+      expect( remote ).to be_a(MultiGit::Remote)
     end
 
     it 'has the correct fetch_url' do
-      remote.fetch_urls.should == ['git://github.com/git/git.git']
+      expect( remote.fetch_urls ).to eql ['git://github.com/git/git.git']
     end
 
     it 'has the correct push_url' do
-      remote.push_urls.should == ['git://github.com/git/git.git']
+      expect( remote.push_urls ).to eql ['git://github.com/git/git.git']
     end
   end
 
@@ -28,19 +28,19 @@ describe '#remote', remote: true do
     let(:remote){ repository.remote('origin') }
 
     it 'works' do
-      remote.should be_a(MultiGit::Remote::Persistent)
+      expect( remote ).to be_a(MultiGit::Remote::Persistent)
     end
 
     it 'has the correct name' do
-      remote.name.should == 'origin'
+      expect( remote.name ).to eql 'origin'
     end
 
     it 'has the correct fetch_url' do
-      remote.fetch_urls.should == ['git://github.com/git/git.git']
+      expect( remote.fetch_urls ).to eql ['git://github.com/git/git.git']
     end
 
     it 'has the correct push_url' do
-      remote.push_urls.should == ['git://github.com/git/git.git']
+      expect( remote.push_urls ).to eql ['git://github.com/git/git.git']
     end
   end
 
@@ -76,7 +76,7 @@ describe '#remote#fetch', remote: true do
 
     it "can fetch stuff" do
       remote.fetch('master:foo/master')
-      repository.branch('foo/master').target.oid.should == '20fde9a8ac86cd9e35b147b3f1460798074d0c57'
+      expect( repository.branch('foo/master').target.oid ).to eql '20fde9a8ac86cd9e35b147b3f1460798074d0c57'
     end
 
   end
@@ -91,7 +91,7 @@ describe '#remote#fetch', remote: true do
 
     it "can fetch stuff" do
       remote.fetch('master')
-      repository.branch('origin/master').target.oid.should == '20fde9a8ac86cd9e35b147b3f1460798074d0c57'
+      expect(repository.branch('origin/master').target.oid).to eql '20fde9a8ac86cd9e35b147b3f1460798074d0c57'
     end
 
   end
@@ -126,13 +126,13 @@ describe '#remote#push', remote: true do
 
     it "can push stuff" do
       remote.push('master:master')
-      remote_repository.branch('master').target.oid.should == '20fde9a8ac86cd9e35b147b3f1460798074d0c57'
+      expect( remote_repository.branch('master').target.oid ).to eql '20fde9a8ac86cd9e35b147b3f1460798074d0c57'
     end
 
     it "can push stuff to a certain branch" do
       expect{
         remote.push('master:retsam')
-        remote_repository.branch('retsam').target.oid.should == '20fde9a8ac86cd9e35b147b3f1460798074d0c57'
+        expect(remote_repository.branch('retsam').target.oid).to eql '20fde9a8ac86cd9e35b147b3f1460798074d0c57'
       }.not_to change{ remote_repository.branch('master').target }
     end
 
@@ -148,13 +148,13 @@ describe '#remote#push', remote: true do
 
     it "can push stuff" do
       remote.push('master')
-      remote_repository.branch('master').target.oid.should == '20fde9a8ac86cd9e35b147b3f1460798074d0c57'
+      expect(remote_repository.branch('master').target.oid).to eql '20fde9a8ac86cd9e35b147b3f1460798074d0c57'
     end
 
     it "can push stuff to a certain branch" do
       expect{
         remote.push('master:retsam')
-        remote_repository.branch('retsam').target.oid.should == '20fde9a8ac86cd9e35b147b3f1460798074d0c57'
+        expect(remote_repository.branch('retsam').target.oid).to eql '20fde9a8ac86cd9e35b147b3f1460798074d0c57'
       }.not_to change{ remote_repository.branch('master').target }
     end
 
