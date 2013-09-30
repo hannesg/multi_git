@@ -147,6 +147,7 @@ shared_examples "an empty repository" do
     expect(result['c']).to be_a(MultiGit::Directory)
     expect(result['c/d']).to be_a(MultiGit::Executeable)
     expect(result.oid).to eql  'd65bc69b6facdb9c389c3b6dc1c2a0d2115ad076'
+    expect(tb).to eq result
   end
 
   it "can read a previously added blob" do

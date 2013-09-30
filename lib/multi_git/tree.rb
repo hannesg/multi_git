@@ -175,6 +175,12 @@ module MultiGit
         entries == other.entries
       end
 
+      alias eql? ==
+
+      def hash
+        entries.hash
+      end
+
     end
 
     include Base
@@ -189,12 +195,12 @@ module MultiGit
       ['#<',self.class.name,' ',oid,' repository:', repository.inspect,'>'].join
     end
 
-  protected
     # @return [Hash<String, MultiGit::TreeEntry>]
     def entries
       @entries ||= Hash[ raw_entries.map{|name, mode, oid| [name, make_entry(name, mode, oid) ] } ]
     end
 
+  protected
     def raw_entries
       raise Error::NotYetImplemented, "#{self.class}#each_entry"
     end
