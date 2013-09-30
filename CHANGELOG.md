@@ -1,6 +1,7 @@
 # 0.0.1
 
 * [ENHANCEMENT] Tree::Builder#changed? now assumes the main directory
+* [BUG] Comparing Trees/Tree::Builders now actually works
 
 # 0.0.1.rc1
 

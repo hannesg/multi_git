@@ -154,6 +154,39 @@ describe MultiGit::Tree::Builder, :tree_builder => true do
       end
     end
 
+    context 'when nothing has changed' do
+      subject do
+        from = MultiGit::Tree::Builder.new do
+          file 'a', 'x'
+          directory 'b' do
+            file 'c', 'y'
+            file 'd', 'z'
+          end
+        end
+        MultiGit::Tree::Builder.new(from) do
+          file 'a'  , 'x'
+          file 'b/c', 'y'
+        end
+      end
+
+      it 'doesn\'t report am unchanged file as changed' do
+        expect(subject.changed?('b/c')).to be_false
+      end
+
+      it 'doesn\'t report am unchanged dir as changed' do
+        expect(subject.changed?('b')).to be_false
+      end
+
+      it 'doesn\'t report a non-existing file as changed' do
+        expect(subject.changed?('d')).to be_false
+      end
+
+      it 'doesn\'t reports the whole builder as changed' do
+        expect(subject.changed?).to be_false
+      end
+    end
+
+
 
   end
 

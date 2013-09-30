@@ -10,25 +10,25 @@ module MultiGit
     include MultiGit::Builder
     include Tree::Base
 
-    attr :entries
+    attr :dirty_entries
     attr :from
 
     def initialize(from = nil, &block)
-      @entries = {}
+      @dirty_entries = {}
       @from = from
       instance_eval(&block) if block
     end
 
     def entry(key)
       if @from
-        @entries.fetch(key) do
+        dirty_entries.fetch(key) do
           e = @from.entry(key)
           if e
-            @entries[key] = e.to_builder.with_parent(self)
+            dirty_entries[key] = e.to_builder.with_parent(self)
           end
         end
       else
-        @entries[key]
+        dirty_entries[key]
       end
     end
 
@@ -42,7 +42,7 @@ module MultiGit
     # TODO: cache
     def names
       names = @from ? @from.names.dup : []
-      @entries.each do |k,v|
+      dirty_entries.each do |k,v|
         if v
           unless names.include? k
             names << k
@@ -54,13 +54,17 @@ module MultiGit
       return names
     end
 
+    def entries
+      Hash[names.map do |n| [n, entry(n)] end ]
+    end
+
     def size
       names.size
     end
 
     def >>(repository)
       ent = []
-      @entries.each do |name, entry|
+      dirty_entries.each do |name, entry|
         if entry
           object = repository.write(entry)
           ent << [name, object.mode, object.oid]
@@ -68,7 +72,7 @@ module MultiGit
       end
       if @from
         @from.each do |entry|
-          unless @entries.key? entry.name
+          unless dirty_entries.key? entry.name
             ent << [entry.name, entry.mode, entry.oid]
           end
         end
@@ -109,7 +113,7 @@ module MultiGit
       alias []= set
 
       def entry_set(key, value)
-        entries[key] = make_entry(key, value)
+        dirty_entries[key] = make_entry(key, value)
       end
 
       def make_entry(key, value)
