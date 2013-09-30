@@ -199,7 +199,8 @@ module MultiGit
       #   builder.file('a_file','some content')
       #   builder.changed? 'a_file' #=> eq true
       #   builder.changed? 'another_file' #=> eq false
-      def changed?( path )
+      #   builder.changed? #=> eq true
+      def changed?( path = '.' )
         begin
           new = traverse(path)
         rescue Error::EntryDoesNotExist

@@ -1,3 +1,7 @@
+# 0.0.1
+
+* [ENHANCEMENT] Tree::Builder#changed? now assumes the main directory
+
 # 0.0.1.rc1
 
 * [FEATURE] Pushing to a remote now works

@@ -109,6 +109,10 @@ describe MultiGit::Tree::Builder, :tree_builder => true do
       it 'doesn\'t report a non-existing file as changed' do
         expect(subject.changed?('d')).to be_false
       end
+
+      it 'reports the whole builder as changed' do
+        expect(subject.changed?).to be_true
+      end
     end
 
     context 'with a non-emtpy from-tree' do
@@ -143,6 +147,10 @@ describe MultiGit::Tree::Builder, :tree_builder => true do
 
       it 'doesn\'t report a non-existing file as changed' do
         expect(subject.changed?('d')).to be_false
+      end
+
+      it 'reports the whole builder as changed' do
+        expect(subject.changed?).to be_true
       end
     end
 
