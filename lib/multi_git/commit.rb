@@ -2,6 +2,7 @@ require 'forwardable'
 require 'multi_git/utils'
 require 'multi_git/handle'
 require 'multi_git/builder'
+require 'multi_git/object'
 module MultiGit
 
   module Commit
@@ -10,26 +11,41 @@ module MultiGit
       extend Utils::AbstractMethods
       extend Forwardable
 
-      # @return String
+      # @!attribute message
+      #   @return [String]
       abstract :message
 
-      # @return Tree
+      # @!attribute tree
+      #   @return [Tree]
       abstract :tree
 
-      # @return [Array<Commit>]
+      # @!attribute parents
+      #   @return [Array<Commit>]
       abstract :parents
 
-      # @return [Time]
+      # @!attribute time
+      #   @return [Time]
       abstract :time
-      # @return [Handle]
+
+      # @!attribute author
+      #   @return [Handle]
       abstract :author
 
-      # @return [Time]
+      # @!attribute commit_time
+      #   @return [Time]
       abstract :commit_time
-      # @return [Handle]
+
+      # @!attribute committer
+      #   @return [Handle]
       abstract :committer
 
-      delegate [:[], :/] => :tree
+      # @!method [](path)
+      #   @see (MultiGit::Tree#[])
+      delegate :[] => :tree
+
+      # @!parse alias / []
+      delegate :/ => :tree
+
 
       def type
         :commit
@@ -49,11 +65,11 @@ module MultiGit
     #   builder = MultiGit::Commit::Builder.new
     #   builder.message = "My first commit"
     #   builder.by "me@example.com"
-    #   builder.tree["a_file"] = "some content"
+    #   builder["a_file"] = "some content"
     #   # builder is now ready to be inserted
     #   repository = MultiGit.open(dir, init: true)
     #   commit = repository << builder #=> be_a MultiGit::Commit
-    #   commit.tree['a_file'].content  #=> eql "some content"
+    #   commit['a_file'].content  #=> eql "some content"
     #   # teardown:
     #   `rm -rf #{dir}`
     class Builder
@@ -128,6 +144,11 @@ module MultiGit
         return self
       end
 
+      extend Forwardable
+      # @!method []=(path, content)
+      #   @see (MultiGit::TreeBuilder#[]=)
+      delegate :[]= => :tree
+
       def initialize(from = nil, &block)
         @parents = []
         if from.kind_of? Tree
@@ -178,6 +199,7 @@ module MultiGit
 
     end
 
+    include Object
     include Base
 
   end
