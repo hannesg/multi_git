@@ -25,7 +25,8 @@ env -i git init --bare . > /dev/null
 OID=$(echo -n "foo" | env -i git hash-object -w -t blob --stdin )
 TOID=$(echo "100644 blob $OID\tfoo" | env -i git mktree)
 COID=$(echo "msg" | env -i GIT_COMMITTER_NAME=multi_git GIT_COMMITTER_EMAIL=info@multi.git 'GIT_COMMITTER_DATE=2005-04-07T22:13:13 +0200' GIT_AUTHOR_NAME=multi_git GIT_AUTHOR_EMAIL=info@multi.git 'GIT_AUTHOR_DATE=2005-04-07T22:13:13 +0200' git commit-tree $TOID)
-env -i git update-ref refs/heads/master $COID`
+env -i git update-ref refs/heads/master $COID
+env -i git update-ref FOO $COID`
     end
 
     let(:repository){ subject.open(tempdir) }
@@ -79,6 +80,13 @@ env -i git update-ref refs/heads/master $COID`
       expect(head.target).to be_nil
       expect(head).to_not be_exists
       expect(head.name).to eql 'refs/heads/foo'
+    end
+
+    context '.resolve' do
+      it "resolves refs" do
+        head = repository.ref('FOO')
+        expect(head.resolve).to eql head
+      end
     end
 
     context '.update' do

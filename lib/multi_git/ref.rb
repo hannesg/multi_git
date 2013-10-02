@@ -279,7 +279,7 @@ module MultiGit
       @leaf = begin
         ref = self
         loop do
-          break ref unless ref.symbolic?
+          break ref unless ref.target.kind_of? MultiGit::Ref
           ref = ref.target
         end
       end
