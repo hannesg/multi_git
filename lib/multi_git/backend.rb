@@ -2,8 +2,10 @@ require 'multi_git/utils'
 require 'multi_git/error'
 module MultiGit
 
+  # Backend is an abstract base class for all other Backends.
   module Backend
 
+    #@!visibility private
     attr :failed, :exception
 
     def check(description, &check)
@@ -28,6 +30,7 @@ module MultiGit
 
     private :check, :check!
 
+    # @api developer
     # @abstract
     #
     # This method implements loading the backend files.
@@ -37,6 +40,10 @@ module MultiGit
 
     # Opens a git repository.
     #
+    # @param [String] directory
+    # @param [Hash] options
+    # @option options [Boolean] :init if true the repository is automatically created (defaults to: false)
+    # @option options [Boolean] :bare if true the repository is expected to be bare
     # @return [Repository]
     def open(directory, options = {})
       load!

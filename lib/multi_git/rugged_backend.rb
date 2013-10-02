@@ -6,6 +6,10 @@ module MultiGit
       def load!
       end
 
+      # @param (see MultiGit#open)
+      # @raise (see MultiGit#open)
+      # @option (see MultiGit#open)
+      # @return (see MultiGit#open)
       def open(path, options = {})
         Repository.new(path, options)
       end

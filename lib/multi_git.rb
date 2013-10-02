@@ -37,11 +37,11 @@ public
   #     # teardown:
   #     `rm -rf #{dir}`
   #
-  #
+  #   @param [String] directory
+  #   @param [Hash] options
+  #   @option options [Boolean] :init if true the repository is automatically created (defaults to: false)
+  #   @option options [Boolean] :bare if true the repository is expected to be bare
   #   @return [Repository]
-  #
-  #   @see Backend
-  # 
   delegate :open => 'best'
 
 end

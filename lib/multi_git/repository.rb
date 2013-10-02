@@ -10,6 +10,22 @@ require 'multi_git/executeable'
 require 'multi_git/submodule'
 
 # Abstract base class for all repository implementations.
+#
+# @example Creating a new repository
+#   # setup:
+#   dir = `mktemp -d`
+#   # example:
+#   repo = MultiGit.open(dir, init: true) #=> be_a MultiGit::Repository
+#   repo.bare? #=> eql false
+#   repo.git_dir #=> eql dir + '/.git'
+#   repo.git_work_tree #=> eql dir
+#   # creating a first commit:
+#   repo.branch('master').commit do
+#     tree['file'] = 'content'
+#   end
+#   # teardown:
+#   `rm -rf #{dir}`
+#
 # @abstract
 class MultiGit::Repository
 
@@ -29,29 +45,33 @@ public
 
   # @!method git_dir
   #   @abstract
-  #   Return the repository base directory
+  #   Returns the repository directory (the place where the internal stuff is stored)
   #   @return [String]
   abstract :git_dir
+
+  # @!method git_work_tree
+  #   @abstract
+  #   Returns the working directory (the place where your files are)
+  #   @return [String]
+  abstract :git_work_tree
 
   # @!method bare?
   #   @abstract
   #   Is this repository bare?
   abstract :bare?
 
-  # @!method initialize(directory, options = {})
-  #   @param directory [String] a directory
-  #   @option options [Boolean] :init init the repository if it doesn't exist
-  #   @option options [Boolean] :bare open/init the repository bare
+  # @!group Object interface
 
-  # @!method read(ref)
-  #   Reads a reference.
+  # @!method read(expression)
+  #   Reads an object from the database.
   #
+  #   @see http://git-scm.com/docs/git-rev-parse#_specifying_revisions Revision expression syntax
   #   @abstract
   #
   #   @raise [MultiGit::Error::InvalidReference] if ref is not a valid reference
   #   @raise [MultiGit::Error::AmbiguousReference] if ref refers to multiple objects
   #   @raise [MultiGit::Error::BadRevisionSyntax] if ref does not contain a valid ref-syntax
-  #   @param [String] ref
+  #   @param [String] expression
   #   @return [MultiGit::Object] object
   abstract :read
 
@@ -62,10 +82,12 @@ public
   #   @return [Boolean]
   abstract :include?
 
-  # @!method parse(ref)
-  #   Resolves a reference into an oid.
+  # @!method parse(expression)
+  #   Resolves an expression into an oid.
   #   @abstract
-  #   @param [String] rev
+  #
+  #   @see http://git-scm.com/docs/git-rev-parse#_specifying_revisions Revision expression syntax
+  #   @param [String] expression
   #   @raise [MultiGit::Error::InvalidReference] if ref is not a valid reference
   #   @raise [MultiGit::Error::AmbiguousReference] if ref refers to multiple objects
   #   @raise [MultiGit::Error::BadRevisionSyntax] if ref does not contain a valid ref-syntax
@@ -89,6 +111,14 @@ public
   #   @return [MultiGit::Object] the resulting object
   abstract :write
 
+  # @!parse alias_method :<<, :write
+  def <<(*args,&block)
+    write(*args,&block)
+  end
+
+  # @!endgroup
+  # @!group References interface
+
   # @!method ref(name)
   #   Opens a reference. A reference is usually known as branch or tag.
   #
@@ -107,13 +137,25 @@ public
   #   @return [MultiGit::Ref] ref
   abstract :ref
 
-  # Gets the ref
+  # Gets the HEAD ref.
   # @return [Ref] head
   def head
     return ref('HEAD')
   end
 
   # Opens a branch
+  #
+  # @example
+  #   # setup:
+  #   dir = `mktemp -d`
+  #   # example:
+  #   repository = MultiGit.open(dir, init: true)
+  #   # getting a local branch
+  #   repository.branch('master') #=> be_a MultiGit::Ref
+  #   # getting a remote branch
+  #   repository.branch('origin/master') #=> be_a MultiGit::Ref
+  #   # teardown:
+  #   `rm -rf #{dir}`
   #
   # @param name [String] branch name
   # @return [Ref]
@@ -145,7 +187,6 @@ public
   #
   abstract :each_branch
 
-
   # @method each_tag
   #   Yields all tags.
   #
@@ -160,10 +201,7 @@ public
     ref(name)
   end
 
-  # @!parse alias_method :<<, :write
-  def <<(*args,&block)
-    write(*args,&block)
-  end
+  # !@endgroup
 
   # @visibility private
   def inspect

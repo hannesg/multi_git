@@ -276,7 +276,7 @@ module MultiGit
     #
     # @return [MultGit::Ref]
     def resolve
-      @leaf = begin
+      @leaf ||= begin
         ref = self
         loop do
           break ref unless ref.target.kind_of? MultiGit::Ref
