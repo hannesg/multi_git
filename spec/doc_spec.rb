@@ -2,7 +2,7 @@ require 'multi_git'
 require 'logger'
 describe "docs" do
 
-  if defined?(JRUBY_VERSION) && (JRUBY_VERSION =~ /\A1.7.[45]/)
+  if defined?(JRUBY_VERSION) && (JRUBY_VERSION =~ /\A1\.7\.4/)
     pending "jruby 1.7.4 breaks yard"
     next
   end

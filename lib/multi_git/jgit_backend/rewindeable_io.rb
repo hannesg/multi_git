@@ -10,17 +10,29 @@ class MultiGit::JGitBackend::RewindeableIO < IO
   import "org.jruby.util.io.ChannelStream"
   import "org.jruby.util.io.ChannelDescriptor"
   import "java.nio.channels.Channels"
-  def self.new(inputStream)
-    jruby_io = RubyIO.new(JRuby.runtime, self)
-    jruby_io.openFile.setMainStream(
-       ChannelStream.open(
-         JRuby.runtime,
-         ChannelDescriptor.new(
-           Channels.newChannel(inputStream)
+
+  class JavaRewindeableIO < RubyIO
+  private
+    field_reader :openFile
+    field_writer :openFile
+
+    def initialize(inputStream)
+      super(JRuby.runtime, MultiGit::JGitBackend::RewindeableIO)
+      self.openFile = OpenFile.new
+      openFile.setMainStream(
+         ChannelStream.open(
+           JRuby.runtime,
+           ChannelDescriptor.new(
+             Channels.newChannel(inputStream)
+           )
          )
-       )
-     )
-    jruby_io.openFile.setMode(OpenFile::READABLE)
+      )
+      openFile.setMode(OpenFile::READABLE)
+    end
+  end
+
+  def self.new(inputStream)
+    jruby_io = JavaRewindeableIO.new(inputStream)
     io = JRuby.dereference(jruby_io)
     io.instance_variable_set(:@backend, inputStream)
     return io

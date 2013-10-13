@@ -32,9 +32,7 @@ class MultiGit::JGitBackend::Object
 private
 
   def java_stream
-    stream = java_object.openStream
-    stream.mark(bytesize)
-    stream
+    java_object.openStream
   end
 
 protected
