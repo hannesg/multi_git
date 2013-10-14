@@ -5,10 +5,10 @@ module MultiGit
 
       include MultiGit::Ref
 
-      # HACK!
-      # @api private
-      # @visibility private
       if defined? Java::OrgEclipseJgitStorageFile::RefDirectoryUpdate
+        # HACK!
+        # @api private
+        # @visibility private
         class Java::OrgEclipseJgitStorageFile::RefDirectoryUpdate
           public :tryLock, :unlock, :doUpdate, :doDelete
         end

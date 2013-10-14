@@ -25,6 +25,7 @@ module MultiGit
       return false
     end
 
+    # @visibility private
     alias eql? ==
 
     # @visibility private

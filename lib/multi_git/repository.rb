@@ -100,10 +100,10 @@ public
   #   If called with a String or an IO, this method creates a {MultiGit::Blob} with the
   #   given content. This is the easiest way to create blobs.
   #
-  #   If called with a {MultiGit::Object}, this method determines if the object does already exist 
+  #   If called with a {MultiGit::Object}, this method determines if the object does already exist
   #   and writes it otherwise.
   #
-  #   If called with a {MultiGit::Builder}, this method inserts the content of the builder to the 
+  #   If called with a {MultiGit::Builder}, this method inserts the content of the builder to the
   #   repository. This is the easiest way to create trees/commits.
   #
   #   @abstract
@@ -176,8 +176,8 @@ public
   end
 
   # @method each_branch( filter = :all )
-  #   Yields either all, local or remote branches. If called 
-  #   with a regular expression it will be used to filter the 
+  #   Yields either all, local or remote branches. If called
+  #   with a regular expression it will be used to filter the
   #   branches by name.
   #
   #   @param filter [:all, :local, :remote, Regexp]
@@ -292,3 +292,4 @@ protected
   end
 
 end
+

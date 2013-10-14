@@ -130,10 +130,16 @@ module MultiGit
         return self
       end
 
-      # @yield [MultiGit::TreeEntry]
+
+      # @overload each(&block)
+      #   @yield [entry]
+      #   @yieldparam entry [MultiGit::TreeEntry]
+      #
+      # @overload each
+      #   @return [Enumerable]
       def each
         return to_enum unless block_given?
-        entries.each do |name, entry|
+        entries.each do |_, entry|
           yield entry
         end
         return self
@@ -170,36 +176,43 @@ module MultiGit
         entries.keys
       end
 
+      # @api private
       def ==( other )
         return false unless other.respond_to? :entries
         entries == other.entries
       end
 
+      # @api private
       alias eql? ==
 
+      # @api private
       def hash
         entries.hash
       end
 
+      # @return [Hash<String, MultiGit::TreeEntry>]
+      def entries
+        @entries ||= Hash[ raw_entries.map{|name, mode, oid| [name, make_entry(name, mode, oid) ] } ]
+      end
     end
 
     include Base
     include Object
 
+    # @return [Builder]
     def to_builder
       Builder.new(self)
+    end
+
+    # @return [Directory]
+    def with_parent(parent, name)
+      Directory.new(parent, name, self)
     end
 
     # @visibility private
     def inspect
       ['#<',self.class.name,' ',oid,' repository:', repository.inspect,'>'].join
     end
-
-    # @return [Hash<String, MultiGit::TreeEntry>]
-    def entries
-      @entries ||= Hash[ raw_entries.map{|name, mode, oid| [name, make_entry(name, mode, oid) ] } ]
-    end
-
   protected
     def raw_entries
       raise Error::NotYetImplemented, "#{self.class}#each_entry"

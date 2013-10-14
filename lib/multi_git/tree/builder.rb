@@ -10,7 +10,11 @@ module MultiGit
     include MultiGit::Builder
     include Tree::Base
 
+    # @return [Hash<String,MultiGit::TreeEntry::Base>]
     attr :dirty_entries
+    private :dirty_entries
+
+    # @return [MultiGit::Tree::Base, nil]
     attr :from
 
     def initialize(from = nil, &block)
@@ -32,6 +36,12 @@ module MultiGit
       end
     end
 
+    # @overload each(&block)
+    #   @yield [entry]
+    #   @yieldparam entry [MultiGit::TreeEntry]
+    #
+    # @overload each
+    #   @return [Enumerable]
     def each
       return to_enum unless block_given?
       names.each do |name|
@@ -54,6 +64,7 @@ module MultiGit
       return names
     end
 
+    # @return [Hash<String,MultiGit::TreeEntry::Builder>]
     def entries
       Hash[names.map do |n| [n, entry(n)] end ]
     end
@@ -80,8 +91,27 @@ module MultiGit
       return repository.make_tree(ent)
     end
 
+    # @param (see Object#with_parent)
+    # @return [Directory::Builder]
+    def with_parent(parent, name)
+      Directory::Builder.new(parent, name, self)
+    end
+
     module DSL
 
+      # @overload set(path, options = {:create => true }, &block)
+      #   @param [String] path
+      #   @param [Hash] options
+      #   @yield [parent, name]
+      #   @yieldparam parent [MultiGit::Tree, nil]
+      #   @yieldparam name [String]
+      #   @yieldreturn [#with_parent, nil]
+      #
+      # @overload set(path, options = {:create => true }, value)
+      #   @param [String] path
+      #   @param [Hash] options
+      #   @param [#with_parent, nil] value
+      #
       def set(key, *args, &block)
         options = {}
         case(args.size)
@@ -112,6 +142,7 @@ module MultiGit
 
       alias []= set
 
+      # @api private
       def entry_set(key, value)
         dirty_entries[key] = make_entry(key, value)
       end
@@ -124,12 +155,13 @@ module MultiGit
           return value
         elsif value.kind_of? String
           return MultiGit::File::Builder.new(self, key, value)
-        elsif value.kind_of? MultiGit::Builder
-          return value.with_parent(self)
+        elsif value.respond_to? :with_parent
+          return value.with_parent(self, key)
         else
           raise ArgumentError, "No idea what to do with #{value.inspect}"
         end
       end
+      private :make_entry
 
       def traverse_set(current, parts, value, create)
         if parts.none?
@@ -161,6 +193,7 @@ module MultiGit
         current.entry_set(part, traverse_set(entry, rest, value, create))
         return current
       end
+      private :traverse_set
 
       def file(name, content = nil, &block)
         set(name){|parent, name|
@@ -190,6 +223,7 @@ module MultiGit
         set(name){ nil }
       end
 
+      # @return [self]
       def to_builder
         self
       end

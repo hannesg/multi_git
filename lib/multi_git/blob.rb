@@ -10,15 +10,18 @@ module MultiGit
         :blob
       end
 
+      # @visibility private
       def ==(other)
         return false unless other.respond_to? :oid
         return oid == other.oid
       end
 
+      # @visibility private
       def inspect
         ['<',self.class,' ',oid,'>'].join
       end
 
+      # @visibility private
       alias to_s inspect
     end
 
@@ -39,9 +42,7 @@ module MultiGit
         end
       end
 
-      def content
-        string
-      end
+      alias content string
 
       def content=(value)
         self.string = value.dup
@@ -58,14 +59,32 @@ module MultiGit
         dig << content
         return dig.hexdigest
       end
+
+      # Turns the blob into a file using the given parent and filename.
+      # @param [Object] parent
+      # @param [String] name
+      # @return [File::Builder]
+      def with_parent(parent, name)
+        File::Builder.new(parent, name, self)
+      end
     end
 
     include Object
     include Base
 
+    # @return [Builder]
     def to_builder
       Builder.new(self)
     end
 
+    # Turns the blob into a file using the given parent and filename.
+    # @param [Object] parent
+    # @param [String] name
+    # @return [File]
+    def with_parent(parent, name)
+      File.new(parent, name, self)
+    end
+
   end
 end
+require 'multi_git/file'
