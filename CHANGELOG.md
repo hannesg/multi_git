@@ -1,5 +1,6 @@
 # 0.0.1
 
+* [FEATURE] Tree::Builder#clear to remove everything from a tree
 * [ENHANCEMENT] Tree::Builder#changed? now assumes the main directory
 * [ENHANCEMENT] added Commit::Builder#[]=
 * [BUG] Comparing Trees/Tree::Builders now actually works

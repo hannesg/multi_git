@@ -186,8 +186,24 @@ describe MultiGit::Tree::Builder, :tree_builder => true do
       end
     end
 
+    describe "clear" do
+      subject do
+        from = MultiGit::Tree::Builder.new do
+          file 'a', 'x'
+          directory 'b' do
+            file 'c', 'y'
+          end
+        end
+        MultiGit::Tree::Builder.new(from) do
+          clear
+        end
+      end
 
+      it 'clears the tree' do
+        expect(subject.entries).to be_empty
+      end
+
+    end
 
   end
-
 end

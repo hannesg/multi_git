@@ -225,6 +225,13 @@ module MultiGit
         set(name){ nil }
       end
 
+      def clear
+        names.each do |name|
+          delete(name)
+        end
+        return nil
+      end
+
       # @return [self]
       def to_builder
         self
