@@ -13,7 +13,11 @@ module MultiGit
 
     class Builder < TreeEntry::Builder
       include Base
+      extend Forwardable
 
+      delegate (Blob::Builder.instance_methods - self.instance_methods) => :object
+
+    private
       def make_inner(*args)
         if args.any?
           if args[0].kind_of? Blob::Builder
@@ -24,10 +28,6 @@ module MultiGit
         end
         Blob::Builder.new(*args)
       end
-
-      extend Forwardable
-
-      delegate (Blob::Builder.instance_methods - self.instance_methods) => :object
     end
 
     include Base

@@ -18,6 +18,10 @@ module MultiGit
 
       include Base
 
+      def target=(t)
+        object.content = t
+      end
+    private
       def make_inner(*args)
         if args.any?
           if args[0].kind_of? Blob::Builder
@@ -28,11 +32,6 @@ module MultiGit
         end
         Blob::Builder.new(*args)
       end
-
-      def target=(t)
-        object.content = t
-      end
-
     end
 
     include Base

@@ -16,10 +16,6 @@ module MultiGit
         :tree
       end
 
-      def parent?
-        false
-      end
-
       def key?(key)
         if key.kind_of? String
           return entries.key?(key)
@@ -52,10 +48,10 @@ module MultiGit
         while parts.any?
           part = parts.pop
           if part == '..'
-            unless current.parent?
+            unless current.respond_to?(:parent) && p = current.parent
               raise MultiGit::Error::InvalidTraversal, "Can't traverse to parent of #{current.inspect} since I don't know where it is."
             end
-            current = current.parent
+            current = p
           elsif part == '.' || part == ''
             # do nothing
           else

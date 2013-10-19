@@ -23,6 +23,8 @@ module MultiGit
       instance_eval(&block) if block
     end
 
+    # @param [String] key
+    # @return [TreeEntry::Builder, nil]
     def entry(key)
       if @from
         dirty_entries.fetch(key) do

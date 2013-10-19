@@ -10,14 +10,12 @@ module MultiGit
         Utils::MODE_DIRECTORY
       end
 
-      def parent?
-        !@parent.nil?
-      end
-
       def size
         object.size
       end
 
+      # @param [String] key
+      # @return [TreeEntry, nil]
       def entry(key)
         e = object.entry(key)
         e.with_parent(self) if e
@@ -52,6 +50,30 @@ module MultiGit
       include Tree::Builder::DSL
       include Base
 
+      # @return [Hash<String, TreeEntry::Builder>]
+      def entries
+        Hash[
+          object.map{|entry| [entry.name, entry.with_parent(self) ] }
+        ]
+      end
+
+      extend Forwardable
+
+      delegate (Tree::Builder.instance_methods - self.instance_methods) => :object
+
+      # @return [TreeEntry, nil]
+      def from
+        defined?(@from) ? @from : @from = make_from
+      end
+
+      # @visibility private
+      # @api private
+      def entry_set(key, value)
+        object.entry_set(key, make_entry(key, value))
+      end
+
+    private
+
       def make_inner(*args)
         if args.any?
           if args[0].kind_of?(Tree::Builder)
@@ -65,26 +87,6 @@ module MultiGit
         Tree::Builder.new(*args)
       end
 
-      def entry_set(key, value)
-        object.entry_set(key, make_entry(key, value))
-      end
-
-      def entries
-        Hash[
-          object.map{|entry| [entry.name, entry.with_parent(self) ] }
-        ]
-      end
-
-      extend Forwardable
-
-      delegate (Tree::Builder.instance_methods - self.instance_methods) => :object
-
-      def from
-        defined?(@from) ? @from : @from = make_from
-      end
-
-    private
-
       def make_from
         if object.from.nil?
           nil
@@ -96,6 +98,7 @@ module MultiGit
 
     include Base
 
+    # @return [Hash<String, TreeEntry>]
     def entries
       @entries ||= Hash[
         object.map{|entry| [entry.name, entry.with_parent(self) ] }

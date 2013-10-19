@@ -3,8 +3,10 @@ require 'multi_git/object'
 require 'multi_git/builder'
 require 'multi_git/walkable'
 module MultiGit
-  # A tree entry is like a {MultiGit::Object} or a {MultiGit::Builder} but it 
-  # also has knows it's parent tree.
+  # A tree entry is a {MultiGit::Object} or a {MultiGit::Builder} that
+  # knows its parent tree and therefore supports several additional operations.
+  # 
+  # @abstract
   class TreeEntry
 
     module Base
@@ -13,7 +15,7 @@ module MultiGit
 
       # @return [String]
       attr :name
-      # @return [MultiGit::Tree::Base]
+      # @return [MultiGit::Tree::Base, nil]
       attr :parent
 
       extend MultiGit::Utils::AbstractMethods
@@ -36,6 +38,17 @@ module MultiGit
         self.class.new(parent, name, @object)
       end
 
+      # Returns the full path to this entry.
+      #
+      # @example
+      #   tree = MultiGit::Tree::Builder.new do
+      #     directory "a" do
+      #       file "b", "content"
+      #     end
+      #   end
+      #   tree['a/b'].path #=> eql 'a/b'
+      #
+      # @return [String]
       def path
         @path ||= begin
                     if parent.respond_to? :path
@@ -46,17 +59,20 @@ module MultiGit
                   end
       end
 
+      # @visibility private
       def ==(other)
         return false unless other.respond_to?(:path) && other.respond_to?(:object) && other.respond_to?(:mode)
         return (path == other.path) && (object == other.object) && (mode == other.mode)
       end
 
+      # @visibility private
       def inspect
         ['#<', self.class.name,'@',path,' ', object.inspect, '>'].join
       end
-   end
+    end
 
-    class Builder# < Base
+    # @abstract
+    class Builder
 
       include MultiGit::Builder
       include Base
@@ -92,7 +108,6 @@ module MultiGit
     def to_builder
       self.class::Builder.new(parent, name, object)
     end
-
 
   end
 
