@@ -46,7 +46,7 @@ module MultiGit
         @header, @message = content.split("\n\n")
         @parent_oids = []
         @header.each_line do |line|
-          type, content = line.split(' ',2)
+          type, content = line.split(' ', 2)
           case(type)
           when 'tree' then @tree_oid = content.chomp
           when 'parent' then @parent_oids << content.chomp
@@ -54,6 +54,9 @@ module MultiGit
             @author, @time = parse_signature(content)
           when 'committer' then
             @committer, @commit_time = parse_signature(content)
+          else
+          when 'gpgsig' then
+            @gpgsig = content.chomp
           else
             raise "Commit line type: #{type}"
           end
@@ -72,4 +75,3 @@ module MultiGit
     end
   end
 end
-
