@@ -179,7 +179,7 @@ env -i git update-ref FOO $COID`
       it "lets others barf when a ref gets updated during pessimistic update" do
         head = repository.ref('refs/heads/master')
         head.update(:pessimistic) do |target|
-          expect(update_master).to be =~ /fatal: Unable to create '.+\.lock': File exists./
+          expect(update_master).to be =~ /fatal:.* Unable to create '.+\.lock': File exists./
           expect($?.exitstatus).to eql 128
           commit_builder target
         end

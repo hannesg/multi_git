@@ -6,11 +6,14 @@ class MultiGit::GitBackend::Object
 
   include MultiGit::Object
 
+  attr :extra_data
+
   def initialize(repository, oid, content = nil)
     @repository = repository
     @git = repository.__backend__
     @oid = oid
     @content = content ? content.dup.freeze : nil
+    @extra_data = {}
   end
 
   def bytesize
