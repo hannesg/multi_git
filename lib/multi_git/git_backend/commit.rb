@@ -54,7 +54,6 @@ module MultiGit
             @author, @time = parse_signature(content)
           when 'committer' then
             @committer, @commit_time = parse_signature(content)
-          else
           when 'gpgsig' then
             @gpgsig = content.chomp
           else
